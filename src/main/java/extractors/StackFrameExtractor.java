@@ -19,8 +19,7 @@ import com.sun.jdi.VoidValue;
 import com.sun.jdi.ReferenceType;
 
 //TODO reduce this class duplications
-//TODO does the uniqueId of a ObjectReference help to find the referred object ?
-public class StackFrameParser {
+public class StackFrameExtractor {
 
 	/**
 	 * Used to indicates which Object has already been visited, to not visit again.
@@ -30,34 +29,34 @@ public class StackFrameParser {
 	private static Set<ObjectReference> visited = new HashSet<ObjectReference>();
 
 	/**
-	 * parse a frame, by parsing the method signature, its arguments, and its
+	 * extract a frame, by parsing the method signature, its arguments, and its
 	 * receiver
 	 * 
-	 * @param frame the frame to parse
+	 * @param frame the frame to extract
 	 */
-	public static void parse(StackFrame frame) {
-		parseMethod(frame);
-		parseArguments(frame);
-		parseReceiver(frame);
+	public static void extract(StackFrame frame) {
+		extractMethod(frame);
+		extractArguments(frame);
+		extractReceiver(frame);
 	}
 
 	/**
 	 * Parsing the method signature used in the given frame
 	 * 
-	 * @param frame the frame to parse
+	 * @param frame the frame to extract
 	 */
-	public static void parseMethod(StackFrame frame) {
+	public static void extractMethod(StackFrame frame) {
 		Method method = frame.location().method();
-		System.out.println("Method: " + method.name() + "(" + String.join(",", method.argumentTypeNames()) + ")");
+		System.out.println("Method signature: " + method.name() + "(" + String.join(",", method.argumentTypeNames()) + ")");
 	}
 
 	/**
 	 * Parsing all accessible arguments given in the method in this frame
 	 * 
-	 * @param frame the frame to parse
+	 * @param frame the frame to extract
 	 */
-	public static void parseArguments(StackFrame frame) {
-		System.out.println("arguments : ");
+	public static void extractArguments(StackFrame frame) {
+		System.out.println("Method arguments values : ");
 
 		// getting the method associated to this frame
 		Method method = frame.location().method();
@@ -78,7 +77,7 @@ public class StackFrameParser {
 			// With this supposition being always true, we can just check if one have next
 			// and iterate in both
 			System.out.print(namesIterator.next() + " = ");
-			parseValueRecursive(argumentsValueIterator.next(), "");
+			extractValueRecursive(argumentsValueIterator.next(), "");
 		}
 
 	}
@@ -86,25 +85,25 @@ public class StackFrameParser {
 	/**
 	 * Parsing the receiver of this frame
 	 * 
-	 * @param frame the frame to parse
+	 * @param frame the frame to extract
 	 */
-	public static void parseReceiver(StackFrame frame) {
-		System.out.println("receiver : ");
-		parseValueRecursive(frame.thisObject(), "");
+	public static void extractReceiver(StackFrame frame) {
+		System.out.println("Method receiver : ");
+		extractValueRecursive(frame.thisObject(), "");
 	}
 
 	/**
-	 * Parse the given value recursively to make sure no information are lost in the process
-	 * @param value the value to parse
+	 * extract the given value recursively to make sure no information are lost in the process
+	 * @param value the value to extract
 	 * @param indent the indent to add to make human able to understand what happen //TODO should be removed after
 	 */ 
-	private static void parseValueRecursive(Value value, String indent) {
+	private static void extractValueRecursive(Value value, String indent) {
 		if (value == null) {
 			System.out.println(indent + "null");
 		} else if (value instanceof PrimitiveValue) {
-			parsePrimitiveValue((PrimitiveValue) value, indent);
+			extractPrimitiveValue((PrimitiveValue) value, indent);
 		} else if (value instanceof ObjectReference) {
-			parseObjectReference((ObjectReference) value, indent);
+			extractObjectReference((ObjectReference) value, indent);
 		} else if (value instanceof VoidValue) {
 			// TODO
 			// implements this if needed
@@ -117,61 +116,63 @@ public class StackFrameParser {
 	}
 	
 	/**
-	 * Parse given the primitive value
-	 * @param value the primitiveValue to parse
+	 * extract given the primitive value
+	 * @param value the primitiveValue to extract
 	 * @param indent the indent to add to make human able to understand what happen //TODO should be removed after
 	 */
-	private static void parsePrimitiveValue(PrimitiveValue value, String indent) {
+	private static void extractPrimitiveValue(PrimitiveValue value, String indent) {
 		System.out.println(indent + value.type().name() + " = " + value.toString());
 	}
 
 	/**
-	 * Parse the given ObjectReference
-	 * @param value the ObjectReference to parse
+	 * extract the given ObjectReference
+	 * @param value the ObjectReference to extract
 	 * @param indent the indent to add to make human able to understand what happen //TODO should be removed after
 	 */
-	private static void parseObjectReference(ObjectReference value, String indent) {
+	private static void extractObjectReference(ObjectReference value, String indent) {
 		//TODO maybe we can add these object to visited ?
 		if (value instanceof StringReference) {
 			System.out.println(
-					indent + "\"" + ((StringReference) value).value() + "\"" + "[id:" + value.uniqueID() + "]");
+					indent + "\"" + ((StringReference) value).value() + "\"" + "[ObjId:" + value.uniqueID() + "]");
 
 		} else if (value instanceof ArrayReference) {
 			ReferenceType type = value.referenceType();
-			System.out.println(indent + type.name() + " [id:" + value.uniqueID() + "] = ");
+			System.out.println(indent + type.name() + " [ObjId:" + value.uniqueID() + "] = ");
 			
 			//Parsing every value of the array
 			List<Value> arrayValues = ((ArrayReference) value).getValues();
-
+			if(arrayValues.size() == 0) {
+				System.out.println("[Empty Array]");
+			}
 			for (int i = 0; i < arrayValues.size(); i++) {
 				System.out.println(indent + "at: " + i + " = ");
-				parseValueRecursive(arrayValues.get(i), indent + "  ");
+				extractValueRecursive(arrayValues.get(i), indent + "  ");
 			}
 
 		} else if (value instanceof ClassObjectReference) {
 			// using reflectedType because it is said to be more precise than referenceType
-			parseAllFields(value, indent, ((ClassObjectReference) value).reflectedType());
+			extractAllFields(value, indent, ((ClassObjectReference) value).reflectedType());
 
 		} else {
-			parseAllFields(value, indent, value.referenceType());
+			extractAllFields(value, indent, value.referenceType());
 		}
 
 	}
 	
 	/**
-	 * Parse all the fields of an ObjectReference
-	 * @param ref the ObjectReference having the fields to parse
+	 * extract all the fields of an ObjectReference
+	 * @param ref the ObjectReference having the fields to extract
 	 * @param indent the indent to add to make human able to understand what happen //TODO should be removed after
 	 * @param type the reference type of the ObjectReference
 	 */
-	private static void parseAllFields(ObjectReference ref, String indent, ReferenceType type) {
+	private static void extractAllFields(ObjectReference ref, String indent, ReferenceType type) {
 		if (visited.contains(ref)) {
-			System.out.println(indent + type.name() + "[id:" + ref.uniqueID() + "]");
+			System.out.println(indent + type.name() + "[ObjId:" + ref.uniqueID() + "]");
 			return;
 		}
 		visited.add(ref);
 
-		System.out.println(indent + type.name() + " [id:" + ref.uniqueID() + "] = ");
+		System.out.println(indent + type.name() + " [ObjId:" + ref.uniqueID() + "] = ");
 
 		// Check if the class is prepared, if not trying to get any field will throw an
 		// exception
@@ -188,11 +189,11 @@ public class StackFrameParser {
 			// visibleFields
 			try {
 				// TODO
-				// We actually parse the static and final fields, should we?
+				// We actually extract the static and final fields, should we?
 				// it's potential information but could also be noise
 				Value fieldValue = ref.getValue(field);
 				System.out.println(indent + field.name() + " = ");
-				parseValueRecursive(fieldValue, indent + "  ");
+				extractValueRecursive(fieldValue, indent + "  ");
 
 			} catch (IllegalArgumentException e) {
 				// TODO Some fields are not valid, how is that possible?
