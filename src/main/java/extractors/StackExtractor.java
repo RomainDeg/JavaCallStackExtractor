@@ -18,19 +18,15 @@ import com.sun.jdi.Value;
 import com.sun.jdi.VoidValue;
 import com.sun.jdi.ReferenceType;
 
-//TODO reduce this class duplications
-public class StackFrameExtractor {
+public class StackExtractor {
 
 	/**
 	 * Used to indicates which Object has already been visited, to not visit again.
-	 * By using its unique ID it should be possible to make a link to the one where
-	 * the parsing system has developed the search.
 	 */
 	private static Set<ObjectReference> visited = new HashSet<ObjectReference>();
 
 	/**
-	 * extract a frame, by parsing the method signature, its arguments, and its
-	 * receiver
+	 * extract a frame, by extracting the method signature, its arguments, and its receiver
 	 * 
 	 * @param frame the frame to extract
 	 */
@@ -41,7 +37,7 @@ public class StackFrameExtractor {
 	}
 
 	/**
-	 * Parsing the method signature used in the given frame
+	 * Extracting the method signature used in the given frame
 	 * 
 	 * @param frame the frame to extract
 	 */
@@ -51,7 +47,7 @@ public class StackFrameExtractor {
 	}
 
 	/**
-	 * Parsing all accessible arguments given in the method in this frame
+	 * Extracting all accessible arguments given in the method in this frame
 	 * 
 	 * @param frame the frame to extract
 	 */
@@ -72,10 +68,8 @@ public class StackFrameExtractor {
 		Iterator<String> namesIterator = method.argumentTypeNames().iterator();
 
 		while (namesIterator.hasNext()) {
-			// Here we suppose that method.argumentTypeNames() and frame.getArgumentValues()
-			// have the same numbers of items
-			// With this supposition being always true, we can just check if one have next
-			// and iterate in both
+			// Here we suppose that method.argumentTypeNames() and frame.getArgumentValues() have the same numbers of items
+			// With this supposition being always true, we can just check if one have next and iterate in both
 			System.out.print(namesIterator.next() + " = ");
 			extractValueRecursive(argumentsValueIterator.next(), "");
 		}
@@ -83,7 +77,7 @@ public class StackFrameExtractor {
 	}
 
 	/**
-	 * Parsing the receiver of this frame
+	 * Extracting the receiver of this frame
 	 * 
 	 * @param frame the frame to extract
 	 */
@@ -94,9 +88,10 @@ public class StackFrameExtractor {
 
 	/**
 	 * extract the given value recursively to make sure no information are lost in the process
-	 * @param value the value to extract
+	 * 
+	 * @param value  the value to extract
 	 * @param indent the indent to add to make human able to understand what happen //TODO should be removed after
-	 */ 
+	 */
 	private static void extractValueRecursive(Value value, String indent) {
 		if (value == null) {
 			System.out.println(indent + "null");
@@ -109,15 +104,15 @@ public class StackFrameExtractor {
 			// implements this if needed
 			throw new IllegalStateException("VoidValue encountered, parsing not yet implemented");
 		} else {
-			//in case there would be another type
-			throw new IllegalStateException(
-					"Unknown Value Type: " + value.type().name() + ", parsing not yet implemented for this type");
+			// in case there would be another type
+			throw new IllegalStateException("Unknown Value Type: " + value.type().name() + ", parsing not yet implemented for this type");
 		}
 	}
-	
+
 	/**
 	 * extract given the primitive value
-	 * @param value the primitiveValue to extract
+	 * 
+	 * @param value  the primitiveValue to extract
 	 * @param indent the indent to add to make human able to understand what happen //TODO should be removed after
 	 */
 	private static void extractPrimitiveValue(PrimitiveValue value, String indent) {
@@ -126,22 +121,22 @@ public class StackFrameExtractor {
 
 	/**
 	 * extract the given ObjectReference
-	 * @param value the ObjectReference to extract
+	 * 
+	 * @param value  the ObjectReference to extract
 	 * @param indent the indent to add to make human able to understand what happen //TODO should be removed after
 	 */
 	private static void extractObjectReference(ObjectReference value, String indent) {
-		//TODO maybe we can add these object to visited ?
+		// TODO maybe we can add these object to visited ?
 		if (value instanceof StringReference) {
-			System.out.println(
-					indent + "\"" + ((StringReference) value).value() + "\"" + "[ObjId:" + value.uniqueID() + "]");
+			System.out.println(indent + "\"" + ((StringReference) value).value() + "\"" + "[ObjId:" + value.uniqueID() + "]");
 
 		} else if (value instanceof ArrayReference) {
 			ReferenceType type = value.referenceType();
 			System.out.println(indent + type.name() + " [ObjId:" + value.uniqueID() + "] = ");
-			
-			//Parsing every value of the array
+
+			// Parsing every value of the array
 			List<Value> arrayValues = ((ArrayReference) value).getValues();
-			if(arrayValues.size() == 0) {
+			if (arrayValues.size() == 0) {
 				System.out.println("[Empty Array]");
 			}
 			for (int i = 0; i < arrayValues.size(); i++) {
@@ -158,12 +153,13 @@ public class StackFrameExtractor {
 		}
 
 	}
-	
+
 	/**
 	 * extract all the fields of an ObjectReference
-	 * @param ref the ObjectReference having the fields to extract
+	 * 
+	 * @param ref    the ObjectReference having the fields to extract
 	 * @param indent the indent to add to make human able to understand what happen //TODO should be removed after
-	 * @param type the reference type of the ObjectReference
+	 * @param type   the reference type of the ObjectReference
 	 */
 	private static void extractAllFields(ObjectReference ref, String indent, ReferenceType type) {
 		if (visited.contains(ref)) {
@@ -174,10 +170,8 @@ public class StackFrameExtractor {
 
 		System.out.println(indent + type.name() + " [ObjId:" + ref.uniqueID() + "] = ");
 
-		// Check if the class is prepared, if not trying to get any field will throw an
-		// exception
-		// TODO maybe there is a way to still get some information out of it, for the
-		// non static fields ?
+		// Check if the class is prepared, if not trying to get any field will throw an exception
+		// TODO maybe there is a way to still get some information out of it, for the non static fields ?
 		if (!type.isPrepared()) {
 			// Preparation involves creating the static fields for a class or interface and
 			// initializing such fields to their default values
@@ -185,8 +179,7 @@ public class StackFrameExtractor {
 		}
 
 		for (Field field : type.visibleFields()) {
-			// TODO check if there is any difference using allFields instead of
-			// visibleFields
+			// TODO check if there is any difference using allFields instead of visibleFields
 			try {
 				// TODO
 				// We actually extract the static and final fields, should we?
@@ -196,6 +189,7 @@ public class StackFrameExtractor {
 				extractValueRecursive(fieldValue, indent + "  ");
 
 			} catch (IllegalArgumentException e) {
+				System.out.println("[Not Accessible]");
 				// TODO Some fields are not valid, how is that possible?
 			}
 		}
