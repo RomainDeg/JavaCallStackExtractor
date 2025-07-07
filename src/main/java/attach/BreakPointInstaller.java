@@ -63,7 +63,7 @@ public class BreakPointInstaller {
 	 */
 	private Method findMethod(VirtualMachine vm, String className, String methodName, List<String> methodArguments) throws ClassNotLoadedException {
 		// finding the class
-		// TODO can only find classes in the JDK
+		// TODO can only find classes in the JDK ?
 		List<ReferenceType> classes = vm.classesByName(className);
 		if (classes.isEmpty()) {
 			throw new IllegalArgumentException("Class not found : " + className);
