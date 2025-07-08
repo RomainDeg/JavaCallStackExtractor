@@ -68,6 +68,7 @@ public class StackExtractor {
 		try {
 			argumentsValueIterator = frame.getArgumentValues().iterator();
 		} catch (InternalException e) {
+			//Happens for native calls, and can't be obtained
 			System.out.println("[Not Accessible]");
 			return;
 		}
@@ -194,8 +195,7 @@ public class StackExtractor {
 			return;
 		}
 
-		for (Field field : type.visibleFields()) {
-			// TODO check if there is any difference using allFields instead of visibleFields
+		for (Field field : type.allFields()) {
 			try {
 				// TODO
 				// We actually extract the static and final fields, should we?
@@ -206,7 +206,6 @@ public class StackExtractor {
 
 			} catch (IllegalArgumentException e) {
 				System.out.println("[Not Accessible]");
-				// TODO Some fields are not valid, how is that possible?
 			}
 		}
 	}
