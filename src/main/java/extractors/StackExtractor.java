@@ -20,6 +20,12 @@ import com.sun.jdi.ReferenceType;
 
 public class StackExtractor {
 
+	public static int maxDepth;
+
+	public static void setMaxDepth(int depth) {
+		maxDepth = depth;
+	}
+
 	/**
 	 * Used to indicates which Object has already been visited, to not visit again.
 	 */
@@ -71,7 +77,7 @@ public class StackExtractor {
 			// Here we suppose that method.argumentTypeNames() and frame.getArgumentValues() have the same numbers of items
 			// With this supposition being always true, we can just check if one have next and iterate in both
 			System.out.print(namesIterator.next() + " = ");
-			extractValueRecursive(argumentsValueIterator.next(), "");
+			extractValueRecursive(argumentsValueIterator.next(), "", 0);
 		}
 
 	}
@@ -83,7 +89,7 @@ public class StackExtractor {
 	 */
 	public static void extractReceiver(StackFrame frame) {
 		System.out.println("Method receiver : ");
-		extractValueRecursive(frame.thisObject(), "");
+		extractValueRecursive(frame.thisObject(), "", 0);
 	}
 
 	/**
@@ -92,13 +98,17 @@ public class StackExtractor {
 	 * @param value  the value to extract
 	 * @param indent the indent to add to make human able to understand what happen
 	 */
-	private static void extractValueRecursive(Value value, String indent) {
+	private static void extractValueRecursive(Value value, String indent, int depth) {
+		if (maxDepth != 0 & depth > maxDepth) {
+			System.out.println(indent + "[max depth attained]");
+			return;
+		}
 		if (value == null) {
 			System.out.println(indent + "null");
 		} else if (value instanceof PrimitiveValue) {
 			extractPrimitiveValue((PrimitiveValue) value, indent);
 		} else if (value instanceof ObjectReference) {
-			extractObjectReference((ObjectReference) value, indent);
+			extractObjectReference((ObjectReference) value, indent, depth);
 		} else if (value instanceof VoidValue) {
 			// TODO
 			// implements this if needed
@@ -125,7 +135,7 @@ public class StackExtractor {
 	 * @param value  the ObjectReference to extract
 	 * @param indent the indent to add to make human able to understand what happen
 	 */
-	private static void extractObjectReference(ObjectReference value, String indent) {
+	private static void extractObjectReference(ObjectReference value, String indent, int depth) {
 		// TODO maybe we can add these object to visited ?
 		if (value instanceof StringReference) {
 			System.out.println(indent + "\"" + ((StringReference) value).value() + "\"" + "[ObjId:" + value.uniqueID() + "]");
@@ -139,17 +149,22 @@ public class StackExtractor {
 			if (arrayValues.size() == 0) {
 				System.out.println("[Empty Array]");
 			}
+			// in case the max depth will be attained stop before the spam of [max depth attained]
+			if (maxDepth != 0 & depth + 1 > maxDepth) {
+				System.out.println(indent + "[max depth attained]");
+				return;
+			}
 			for (int i = 0; i < arrayValues.size(); i++) {
 				System.out.println(indent + "at: " + i + " = ");
-				extractValueRecursive(arrayValues.get(i), indent + "  ");
+				extractValueRecursive(arrayValues.get(i), indent + "  ", depth + 1);
 			}
 
 		} else if (value instanceof ClassObjectReference) {
 			// using reflectedType because it is said to be more precise than referenceType
-			extractAllFields(value, indent, ((ClassObjectReference) value).reflectedType());
+			extractAllFields(value, indent, ((ClassObjectReference) value).reflectedType(), depth);
 
 		} else {
-			extractAllFields(value, indent, value.referenceType());
+			extractAllFields(value, indent, value.referenceType(), depth);
 		}
 
 	}
@@ -161,7 +176,7 @@ public class StackExtractor {
 	 * @param indent the indent to add to make human able to understand what happen
 	 * @param type   the reference type of the ObjectReference
 	 */
-	private static void extractAllFields(ObjectReference ref, String indent, ReferenceType type) {
+	private static void extractAllFields(ObjectReference ref, String indent, ReferenceType type, int depth) {
 		if (visited.contains(ref)) {
 			System.out.println(indent + type.name() + "[ObjId:" + ref.uniqueID() + "]");
 			return;
@@ -171,10 +186,11 @@ public class StackExtractor {
 		System.out.println(indent + type.name() + " [ObjId:" + ref.uniqueID() + "] = ");
 
 		// Check if the class is prepared, if not trying to get any field will throw an exception
-		// TODO maybe there is a way to still get some information out of it, for the non static fields ?
+		// TODO maybe there is a way to force load the class, is that useful ? maybe the fact that it didn't load mean it's not useful
 		if (!type.isPrepared()) {
 			// Preparation involves creating the static fields for a class or interface and
 			// initializing such fields to their default values
+			System.out.println(indent + "[not prepared]");
 			return;
 		}
 
@@ -186,7 +202,7 @@ public class StackExtractor {
 				// it's potential information but could also be noise
 				Value fieldValue = ref.getValue(field);
 				System.out.println(indent + field.name() + " = ");
-				extractValueRecursive(fieldValue, indent + "  ");
+				extractValueRecursive(fieldValue, indent + "  ", depth + 1);
 
 			} catch (IllegalArgumentException e) {
 				System.out.println("[Not Accessible]");

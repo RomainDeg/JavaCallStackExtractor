@@ -21,7 +21,13 @@ public class JDIAttach {
 		// all informations of the method where a breakpoint should be added
 		String className = "java.lang.Runtime";
 		String methodName = "exec";
-		List<String> methodArguments = Arrays.asList("java.lang.String"); // can be null if there's only one occurrence on the method's name in the class
+		List<String> methodArguments = Arrays.asList("java.lang.String"); // can be null if there's only one occurrence on the method's name in the
+																			// class
+
+		// define the max depth of the recursive instance research
+		int maxDepth = 10;// 0 for no max depth
+		
+		StackExtractor.setMaxDepth(maxDepth);
 
 		// getting the VM
 		VirtualMachine vm = attachToJVM(host, port);
