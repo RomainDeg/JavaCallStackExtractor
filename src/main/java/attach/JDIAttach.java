@@ -9,6 +9,9 @@ import java.net.ConnectException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Attach to a java virtual machine to extract the call stack to a text file
+ */
 public class JDIAttach {
 
 	public static void main(String[] args) throws Exception {
@@ -25,7 +28,7 @@ public class JDIAttach {
 																			// class
 
 		// define the max depth of the recursive instance research
-		int maxDepth = 10;// 0 for no max depth
+		int maxDepth = 20;// 0 for no max depth
 		
 		StackExtractor.setMaxDepth(maxDepth);
 
@@ -33,7 +36,7 @@ public class JDIAttach {
 		VirtualMachine vm = attachToJVM(host, port);
 
 		// Adding the breakpoint
-		BreakPointInstaller.INSTANCE.addBreakpoint(vm, className, methodName, methodArguments);
+		BreakPointInstaller.addBreakpoint(vm, className, methodName, methodArguments);
 
 		// Searching for the wanted thread
 		ThreadReference thread = getThread(threadName, vm);

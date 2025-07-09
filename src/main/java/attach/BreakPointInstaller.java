@@ -12,13 +12,10 @@ import com.sun.jdi.VirtualMachine;
 import com.sun.jdi.request.BreakpointRequest;
 import com.sun.jdi.request.EventRequestManager;
 
+/**
+ * This class offer methods to add a breakpoint on a method, from the method description
+ */
 public class BreakPointInstaller {
-
-	public static final BreakPointInstaller INSTANCE = new BreakPointInstaller();
-
-	private BreakPointInstaller() {
-
-	}
 
 	/**
 	 * Add a breakpoint at a specified method on the given VM Precise the method argument type names in case there is multiple method having the same
@@ -29,7 +26,7 @@ public class BreakPointInstaller {
 	 * @param methodName      the name of the method
 	 * @param methodArguments name of all arguments type of the method in the declaration order
 	 */
-	public boolean addBreakpoint(VirtualMachine vm, String className, String methodName, List<String> methodArguments) {
+	public static boolean addBreakpoint(VirtualMachine vm, String className, String methodName, List<String> methodArguments) {
 		try {
 			// Getting the EventRequestManager of the VirtualMachine
 			EventRequestManager requestManager = vm.eventRequestManager();
@@ -61,7 +58,7 @@ public class BreakPointInstaller {
 	 * @return the method if one match
 	 * @throws ClassNotLoadedException if no method matches the characteristics
 	 */
-	private Method findMethod(VirtualMachine vm, String className, String methodName, List<String> methodArguments) throws ClassNotLoadedException {
+	private static Method findMethod(VirtualMachine vm, String className, String methodName, List<String> methodArguments) throws ClassNotLoadedException {
 		// finding the class
 		// TODO can only find classes in the JDK ?
 		List<ReferenceType> classes = vm.classesByName(className);

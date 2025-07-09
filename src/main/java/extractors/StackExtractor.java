@@ -18,8 +18,14 @@ import com.sun.jdi.Value;
 import com.sun.jdi.VoidValue;
 import com.sun.jdi.ReferenceType;
 
+/**
+ * This class extract all the information of a given stack frame to a text file
+ */
 public class StackExtractor {
 
+	/**
+	 * represent the maximum recursion algorithm to study object's fields and array's value can make
+	 */
 	public static int maxDepth;
 
 	public static void setMaxDepth(int depth) {
@@ -104,7 +110,7 @@ public class StackExtractor {
 			System.out.println(indent + "[max depth attained]");
 			return;
 		}
-		if (value == null) {
+		else if (value == null) {
 			System.out.println(indent + "null");
 		} else if (value instanceof PrimitiveValue) {
 			extractPrimitiveValue((PrimitiveValue) value, indent);
@@ -113,7 +119,7 @@ public class StackExtractor {
 		} else if (value instanceof VoidValue) {
 			// TODO
 			// implements this if needed
-			throw new IllegalStateException("VoidValue encountered, parsing not yet implemented");
+			throw new IllegalStateException("VoidValue encountered, extracting not yet implemented");
 		} else {
 			// in case there would be another type
 			throw new IllegalStateException("Unknown Value Type: " + value.type().name() + ", parsing not yet implemented for this type");
