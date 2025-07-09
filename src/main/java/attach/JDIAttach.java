@@ -3,6 +3,8 @@ package attach;
 import com.sun.jdi.*;
 import com.sun.jdi.connect.*;
 import extractors.StackExtractor;
+import logging.ILogger;
+import logging.LoggerPrintTxt;
 
 import java.io.IOException;
 import java.net.ConnectException;
@@ -13,6 +15,7 @@ import java.util.concurrent.TimeUnit;
  * Attach to a java virtual machine to extract the call stack to a text file
  */
 public class JDIAttach {
+	
 
 	public static void main(String[] args) throws Exception {
 		// setting the variable that could become argument of the program
@@ -29,8 +32,11 @@ public class JDIAttach {
 
 		// define the max depth of the recursive instance research
 		int maxDepth = 20;// 0 for no max depth
-		
+		// Define what logging method will be used
+		ILogger logger = new LoggerPrintTxt();
+
 		StackExtractor.setMaxDepth(maxDepth);
+		StackExtractor.setLogger(logger);
 
 		// getting the VM
 		VirtualMachine vm = attachToJVM(host, port);
@@ -62,16 +68,19 @@ public class JDIAttach {
 	private static void extractCallStack(ThreadReference thread) {
 
 		try {
+			StackExtractor.logger.framesStart();
 			// iterating from the end of the list to start the logging from the first method called
 			List<StackFrame> frames = thread.frames();
 			ListIterator<StackFrame> it = frames.listIterator(frames.size());
 			for (int i = 1; i <= frames.size(); i++) {
-				System.out.println("---- Line " + i + " of the call stack ----");
-
+				StackExtractor.logger.frameLineStart(i);
+				
 				StackFrame frame = it.previous();
 				// extracting the stack frame
 				StackExtractor.extract(frame);
+				StackExtractor.logger.frameLineEnd();
 			}
+			StackExtractor.logger.framesEnd();
 		} catch (IncompatibleThreadStateException e) {
 			// Should not happen because we are supposed to be at a breakpoint
 			throw new IllegalStateException("Thread should be at a breakpoint but isn't");

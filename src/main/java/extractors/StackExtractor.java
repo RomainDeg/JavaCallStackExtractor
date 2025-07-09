@@ -16,18 +16,40 @@ import com.sun.jdi.StackFrame;
 import com.sun.jdi.StringReference;
 import com.sun.jdi.Value;
 import com.sun.jdi.VoidValue;
+
+import logging.ILogger;
+import logging.LoggerPrintTxt;
+
 import com.sun.jdi.ReferenceType;
 
 /**
  * This class extract all the information of a given stack frame to a text file
  */
 public class StackExtractor {
+	
+	/**
+	 * The logger used to collect extracted informations
+	 * Default value is LoggerPrintTxt
+	 */
+	public static ILogger logger = new LoggerPrintTxt();
 
 	/**
 	 * represent the maximum recursion algorithm to study object's fields and array's value can make
 	 */
 	public static int maxDepth;
+	
+	public static void setLogger(ILogger log) {
+		logger = log;
+	}
+	
+	public static ILogger getLogger() {
+		return logger;
+	}
 
+	/**
+	 * Set the max depth recursion for the algorithm to study object's fields and array's value can make
+	 * @param depth the new max depth
+	 */
 	public static void setMaxDepth(int depth) {
 		maxDepth = depth;
 	}
@@ -55,7 +77,7 @@ public class StackExtractor {
 	 */
 	public static void extractMethod(StackFrame frame) {
 		Method method = frame.location().method();
-		System.out.println("Method signature: " + method.name() + "(" + String.join(",", method.argumentTypeNames()) + ")");
+		logger.methodName(method);
 	}
 
 	/**
@@ -64,7 +86,7 @@ public class StackExtractor {
 	 * @param frame the frame to extract
 	 */
 	public static void extractArguments(StackFrame frame) {
-		System.out.println("Method arguments values : ");
+		logger.methodArgumentStart();
 
 		// getting the method associated to this frame
 		Method method = frame.location().method();
@@ -75,7 +97,7 @@ public class StackExtractor {
 			argumentsValueIterator = frame.getArgumentValues().iterator();
 		} catch (InternalException e) {
 			//Happens for native calls, and can't be obtained
-			System.out.println("[Not Accessible]");
+			logger.unaccessibleField();
 			return;
 		}
 		Iterator<String> namesIterator = method.argumentTypeNames().iterator();
@@ -83,10 +105,11 @@ public class StackExtractor {
 		while (namesIterator.hasNext()) {
 			// Here we suppose that method.argumentTypeNames() and frame.getArgumentValues() have the same numbers of items
 			// With this supposition being always true, we can just check if one have next and iterate in both
-			System.out.print(namesIterator.next() + " = ");
-			extractValueRecursive(argumentsValueIterator.next(), "", 0);
+			logger.fieldName(namesIterator.next());
+			
+			extractValueRecursive(argumentsValueIterator.next(), 0);
 		}
-
+		logger.methodArgumentEnd();
 	}
 
 	/**
@@ -95,8 +118,9 @@ public class StackExtractor {
 	 * @param frame the frame to extract
 	 */
 	public static void extractReceiver(StackFrame frame) {
-		System.out.println("Method receiver : ");
-		extractValueRecursive(frame.thisObject(), "", 0);
+		logger.methodReceiverStart();
+		extractValueRecursive(frame.thisObject(), 0);
+		logger.methodReceiverEnd();
 	}
 
 	/**
@@ -105,17 +129,18 @@ public class StackExtractor {
 	 * @param value  the value to extract
 	 * @param indent the indent to add to make human able to understand what happen
 	 */
-	private static void extractValueRecursive(Value value, String indent, int depth) {
+	private static void extractValueRecursive(Value value, int depth) {
+		logger.valueStart();
 		if (maxDepth != 0 & depth > maxDepth) {
-			System.out.println(indent + "[max depth attained]");
+			logger.maxDepth(depth);
 			return;
 		}
 		else if (value == null) {
-			System.out.println(indent + "null");
+			logger.nullValue(depth);
 		} else if (value instanceof PrimitiveValue) {
-			extractPrimitiveValue((PrimitiveValue) value, indent);
+			extractPrimitiveValue((PrimitiveValue) value, depth);
 		} else if (value instanceof ObjectReference) {
-			extractObjectReference((ObjectReference) value, indent, depth);
+			extractObjectReference((ObjectReference) value, depth);
 		} else if (value instanceof VoidValue) {
 			// TODO
 			// implements this if needed
@@ -124,6 +149,7 @@ public class StackExtractor {
 			// in case there would be another type
 			throw new IllegalStateException("Unknown Value Type: " + value.type().name() + ", parsing not yet implemented for this type");
 		}
+		logger.valueEnd();
 	}
 
 	/**
@@ -132,8 +158,8 @@ public class StackExtractor {
 	 * @param value  the primitiveValue to extract
 	 * @param indent the indent to add to make human able to understand what happen
 	 */
-	private static void extractPrimitiveValue(PrimitiveValue value, String indent) {
-		System.out.println(indent + value.type().name() + " = " + value.toString());
+	private static void extractPrimitiveValue(PrimitiveValue value, int depth) {
+		logger.primitiveValue(value, depth);
 	}
 
 	/**
@@ -142,36 +168,35 @@ public class StackExtractor {
 	 * @param value  the ObjectReference to extract
 	 * @param indent the indent to add to make human able to understand what happen
 	 */
-	private static void extractObjectReference(ObjectReference value, String indent, int depth) {
+	private static void extractObjectReference(ObjectReference value, int depth) {
 		// TODO maybe we can add these object to visited ?
 		if (value instanceof StringReference) {
-			System.out.println(indent + "\"" + ((StringReference) value).value() + "\"" + "[ObjId:" + value.uniqueID() + "]");
-
+			logger.stringReference((StringReference) value, depth);
 		} else if (value instanceof ArrayReference) {
-			ReferenceType type = value.referenceType();
-			System.out.println(indent + type.name() + " [ObjId:" + value.uniqueID() + "] = ");
+			logger.objectReferenceStart(value, depth);
 
 			// Parsing every value of the array
 			List<Value> arrayValues = ((ArrayReference) value).getValues();
 			if (arrayValues.size() == 0) {
-				System.out.println("[Empty Array]");
+				logger.emptyArray(depth);
 			}
 			// in case the max depth will be attained stop before the spam of [max depth attained]
 			if (maxDepth != 0 & depth + 1 > maxDepth) {
-				System.out.println(indent + "[max depth attained]");
+				logger.maxDepth(depth);
 				return;
 			}
 			for (int i = 0; i < arrayValues.size(); i++) {
-				System.out.println(indent + "at: " + i + " = ");
-				extractValueRecursive(arrayValues.get(i), indent + "  ", depth + 1);
+				logger.arrayValueStart(i,depth);
+				extractValueRecursive(arrayValues.get(i), depth + 1);
+				logger.arrayValueEnd();
 			}
-
+			logger.objectReferenceEnd();
 		} else if (value instanceof ClassObjectReference) {
 			// using reflectedType because it is said to be more precise than referenceType
-			extractAllFields(value, indent, ((ClassObjectReference) value).reflectedType(), depth);
+			extractAllFields(value, ((ClassObjectReference) value).reflectedType(), depth);
 
 		} else {
-			extractAllFields(value, indent, value.referenceType(), depth);
+			extractAllFields(value, value.referenceType(), depth);
 		}
 
 	}
@@ -183,21 +208,23 @@ public class StackExtractor {
 	 * @param indent the indent to add to make human able to understand what happen
 	 * @param type   the reference type of the ObjectReference
 	 */
-	private static void extractAllFields(ObjectReference ref, String indent, ReferenceType type, int depth) {
+	private static void extractAllFields(ObjectReference ref, ReferenceType type, int depth) {
+		logger.fieldsStart();
 		if (visited.contains(ref)) {
-			System.out.println(indent + type.name() + "[ObjId:" + ref.uniqueID() + "]");
+			logger.objectReference(ref,depth);
 			return;
 		}
 		visited.add(ref);
-
-		System.out.println(indent + type.name() + " [ObjId:" + ref.uniqueID() + "] = ");
+		
+		logger.objectReferenceStart(ref, depth);
 
 		// Check if the class is prepared, if not trying to get any field will throw an exception
 		// TODO maybe there is a way to force load the class, is that useful ? maybe the fact that it didn't load mean it's not useful
 		if (!type.isPrepared()) {
 			// Preparation involves creating the static fields for a class or interface and
 			// initializing such fields to their default values
-			System.out.println(indent + "[not prepared]");
+			
+			logger.classNotPrepared(depth);
 			return;
 		}
 
@@ -207,13 +234,19 @@ public class StackExtractor {
 				// We actually extract the static and final fields, should we?
 				// it's potential information but could also be noise
 				Value fieldValue = ref.getValue(field);
-				System.out.println(indent + field.name() + " = ");
-				extractValueRecursive(fieldValue, indent + "  ", depth + 1);
+				logger.fieldNameStart(field.name(),depth);
+				
+				extractValueRecursive(fieldValue, depth + 1);
+				
+				logger.fieldNameEnd(field.name());
 
 			} catch (IllegalArgumentException e) {
-				System.out.println("[Not Accessible]");
+				logger.unaccessibleField(depth);
 			}
 		}
+		logger.objectReferenceEnd();
+		
+		logger.fieldsEnd();
 	}
 
 }

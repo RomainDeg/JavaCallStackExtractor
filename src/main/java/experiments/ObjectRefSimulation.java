@@ -29,7 +29,6 @@ public class ObjectRefSimulation {
 		try {
 			Runtime.getRuntime().exec("open -a calculator");
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
