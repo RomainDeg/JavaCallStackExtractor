@@ -104,7 +104,6 @@ public class LoggerText implements ILoggerFormat {
 
 	@Override
 	public void objectReferenceAlreadyFound(ObjectReference value, int depth) {
-		//TODO change this to just print something like [Already studied]
 		addIndent(depth);
 		System.out.println("[Already studied]");
 	}
