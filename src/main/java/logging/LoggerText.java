@@ -5,12 +5,16 @@ import com.sun.jdi.ObjectReference;
 import com.sun.jdi.PrimitiveValue;
 import com.sun.jdi.StringReference;
 
-public class LoggerText implements ILoggerFormat {
+public class LoggerText extends AbstractLoggerFormat {
 
 	private static String indent = "  ";
 
+	public LoggerText(String outputName) {
+		super(outputName, "txt");
+	}
+
 	private void addIndent(int depth) {
-		System.out.print(indent.repeat(depth));
+		write(indent.repeat(depth));
 	}
 
 	@Override
@@ -25,7 +29,7 @@ public class LoggerText implements ILoggerFormat {
 
 	@Override
 	public void frameLineStart(int number) {
-		System.out.println("---- Line " + number + " of the call stack ----");
+		writeln("---- Line " + number + " of the call stack ----");
 	}
 
 	@Override
@@ -35,12 +39,12 @@ public class LoggerText implements ILoggerFormat {
 
 	@Override
 	public void methodSignature(Method method) {
-		System.out.println("Method signature: " + method.name() + "(" + String.join(",", method.argumentTypeNames()) + ")");
+		writeln("Method signature: " + method.name() + "(" + String.join(",", method.argumentTypeNames()) + ")");
 	}
 
 	@Override
 	public void methodArgumentStart() {
-		System.out.println("Method arguments values : ");
+		writeln("Method arguments values : ");
 	}
 
 	@Override
@@ -52,13 +56,13 @@ public class LoggerText implements ILoggerFormat {
 	@Override
 	public void unaccessibleField(int depth) {
 		addIndent(depth);
-		System.out.println("[Not Accessible]");
+		writeln("[Not Accessible]");
 	}
 
 	@Override
 	public void fieldNameStart(String name, int depth) {
 		addIndent(depth);
-		System.out.println(name + " = ");
+		writeln(name + " = ");
 	}
 
 	@Override
@@ -66,13 +70,12 @@ public class LoggerText implements ILoggerFormat {
 		// Nothing
 	}
 
-
 	@Override
 	public void methodReceiverStart() {
-		System.out.println("Method receiver : ");
-		
+		writeln("Method receiver : ");
+
 	}
-	
+
 	@Override
 	public void methodReceiverEnd() {
 		// Nothing
@@ -81,37 +84,37 @@ public class LoggerText implements ILoggerFormat {
 	@Override
 	public void nullValue(int depth) {
 		addIndent(depth);
-		System.out.println("null");
+		writeln("null");
 	}
 
 	@Override
 	public void maxDepth(int depth) {
 		addIndent(depth);
-		System.out.println("[max depth attained]");
+		writeln("[max depth attained]");
 	}
 
 	@Override
 	public void primitiveValue(PrimitiveValue value, int depth) {
 		addIndent(depth);
-		System.out.println(value.type().name() + " = " + value.toString());
+		writeln(value.type().name() + " = " + value.toString());
 	}
 
 	@Override
 	public void stringReference(StringReference value, int depth) {
 		addIndent(depth);
-		System.out.println("\"" + value.value() + "\"" + "[ObjId:" + value.uniqueID() + "]");
+		writeln("\"" + value.value() + "\"" + "[ObjId:" + value.uniqueID() + "]");
 	}
 
 	@Override
 	public void objectReferenceAlreadyFound(ObjectReference value, int depth) {
 		addIndent(depth);
-		System.out.println("[Already studied]");
+		writeln("[Already studied]");
 	}
 
 	@Override
 	public void objectReferenceStart(ObjectReference value, int depth) {
 		addIndent(depth);
-		System.out.println(value.referenceType().name() + " [ObjId:" + value.uniqueID() + "] = ");
+		writeln(value.referenceType().name() + " [ObjId:" + value.uniqueID() + "] = ");
 	}
 
 	@Override
@@ -121,13 +124,13 @@ public class LoggerText implements ILoggerFormat {
 
 	@Override
 	public void emptyArray(int depth) {
-		System.out.println("[Empty Array]");
+		writeln("[Empty Array]");
 	}
 
 	@Override
 	public void arrayValueStart(int number, int depth) {
 		addIndent(depth);
-		System.out.println("at: " + number + " = ");
+		writeln("at: " + number + " = ");
 	}
 
 	@Override
@@ -148,7 +151,7 @@ public class LoggerText implements ILoggerFormat {
 	@Override
 	public void classNotPrepared(int depth) {
 		addIndent(depth);
-		System.out.println("[not prepared]");
+		writeln("[not prepared]");
 	}
 
 	@Override
@@ -159,13 +162,13 @@ public class LoggerText implements ILoggerFormat {
 	@Override
 	public void arrayStart() {
 		// Nothing
-		
+
 	}
 
 	@Override
 	public void arrayEnd() {
 		// Nothing
-		
+
 	}
 
 }

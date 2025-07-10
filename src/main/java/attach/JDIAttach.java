@@ -16,9 +16,9 @@ import java.util.concurrent.TimeUnit;
  * Attach to a java virtual machine to extract the call stack to a text file
  */
 public class JDIAttach {
-	
 
 	public static void main(String[] args) throws Exception {
+
 		// setting the variable that could become argument of the program
 		String host = "localhost";
 		String port = "5006";
@@ -33,9 +33,9 @@ public class JDIAttach {
 
 		// define the max depth of the recursive instance research
 		int maxDepth = 20;// 0 for no max depth
-		// Define what logging method will be used
-		ILoggerFormat logger = new LoggerJson();
-
+		// Define what logging method will be used and give the name of the output file in argument
+		ILoggerFormat logger = new LoggerJson("JDIOutput");
+		
 		StackExtractor.setMaxDepth(maxDepth);
 		StackExtractor.setLogger(logger);
 
@@ -59,6 +59,8 @@ public class JDIAttach {
 
 		// properly disconnecting
 		vm.dispose();
+		// close the writer in the logger
+		logger.closeWriter();
 	}
 
 	/**
@@ -73,19 +75,18 @@ public class JDIAttach {
 			// iterating from the end of the list to start the logging from the first method called
 			List<StackFrame> frames = thread.frames();
 			ListIterator<StackFrame> it = frames.listIterator(frames.size());
-			
 
 			// doing the first iteration separately because the logging potentially need
 			// to know if we are at the first element or not to join with a special character
 			StackExtractor.logger.frameLineStart(1);
-			
+
 			// extracting the stack frame
 			StackExtractor.extract(it.previous());
 			StackExtractor.logger.frameLineEnd();
-			
+
 			for (int i = 2; i <= frames.size(); i++) {
 				StackExtractor.logger.joinElementListing();
-				
+
 				StackExtractor.logger.frameLineStart(i);
 				// extracting the stack frame
 				StackExtractor.extract(it.previous());

@@ -28,9 +28,9 @@ import com.sun.jdi.ReferenceType;
 public class StackExtractor {
 
 	/**
-	 * The logger used to collect extracted informations Default value is LoggerPrintTxt
+	 * The logger used to collect extracted informations Default value is LoggerPrintTxt with an output named "output.txt"
 	 */
-	public static ILoggerFormat logger = new LoggerText();
+	public static ILoggerFormat logger = new LoggerText("output");
 
 	/**
 	 * represent the maximum recursion algorithm to study object's fields and array's value can make
@@ -195,7 +195,7 @@ public class StackExtractor {
 			if (arrayValues.size() == 0) {
 				logger.emptyArray(depth);
 			} else if (maxDepth != 0 & depth + 1 > maxDepth) {
-				// in case the max depth will be attained stop before the spam of [max depth attained]
+				// in case the max depth will be attained stop here to not make an array full of maxDepth messages
 				logger.maxDepth(depth);
 			} else {
 				logger.arrayStart();

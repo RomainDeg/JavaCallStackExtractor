@@ -1,5 +1,8 @@
 package logging;
 
+
+import java.io.IOException;
+
 import com.sun.jdi.Method;
 import com.sun.jdi.ObjectReference;
 import com.sun.jdi.PrimitiveValue;
@@ -7,60 +10,62 @@ import com.sun.jdi.StringReference;
 
 public interface ILoggerFormat {
 
-	void framesStart();
+	void closeWriter() throws IOException ;
 
-	void framesEnd();
+	void framesStart() ;
 
-	void frameLineStart(int i);
+	void framesEnd() ;
 
-	void frameLineEnd();
+	void frameLineStart(int i) ;
 
-	void methodSignature(Method method);
+	void frameLineEnd() ;
 
-	void methodArgumentStart();
+	void methodSignature(Method method) ;
 
-	void methodArgumentEnd();
+	void methodArgumentStart() ;
 
-	void unaccessibleField(int depth);
+	void methodArgumentEnd() ;
 
-	void fieldNameStart(String name, int depth);
+	void unaccessibleField(int depth) ;
 
-	void fieldNameEnd();
+	void fieldNameStart(String name, int depth) ;
 
-	void methodReceiverStart();
+	void fieldNameEnd() ;
 
-	void methodReceiverEnd();
+	void methodReceiverStart() ;
 
-	void nullValue(int depth);
+	void methodReceiverEnd() ;
 
-	void maxDepth(int depth);
+	void nullValue(int depth) ;
 
-	void primitiveValue(PrimitiveValue value, int depth);
+	void maxDepth(int depth) ;
 
-	void stringReference(StringReference value, int depth);
+	void primitiveValue(PrimitiveValue value, int depth) ;
 
-	void objectReferenceAlreadyFound(ObjectReference value, int depth);
+	void stringReference(StringReference value, int depth) ;
 
-	void objectReferenceStart(ObjectReference value, int depth);
+	void objectReferenceAlreadyFound(ObjectReference value, int depth) ;
 
-	void objectReferenceEnd();
+	void objectReferenceStart(ObjectReference value, int depth) ;
 
-	void emptyArray(int depth);
+	void objectReferenceEnd() ;
 
-	void arrayValueStart(int number, int depth);
+	void emptyArray(int depth) ;
 
-	void arrayValueEnd();
+	void arrayValueStart(int number, int depth) ;
 
-	void fieldsStart();
+	void arrayValueEnd() ;
 
-	void fieldsEnd();
+	void fieldsStart() ;
 
-	void classNotPrepared(int depth);
+	void fieldsEnd() ;
 
-	void joinElementListing();
+	void classNotPrepared(int depth) ;
 
-	void arrayStart();
+	void joinElementListing() ;
 
-	void arrayEnd();
+	void arrayStart() ;
+
+	void arrayEnd() ;
 
 }

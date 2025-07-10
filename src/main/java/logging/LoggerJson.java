@@ -7,7 +7,11 @@ import com.sun.jdi.ObjectReference;
 import com.sun.jdi.PrimitiveValue;
 import com.sun.jdi.StringReference;
 
-public class LoggerJson implements ILoggerFormat {
+public class LoggerJson extends AbstractLoggerFormat {
+
+	public LoggerJson(String outputName) {
+		super(outputName, "json");
+	}
 
 	@Override
 	public void framesStart() {
@@ -37,14 +41,14 @@ public class LoggerJson implements ILoggerFormat {
 		// TODO the informations about the arguments types will also be obtained from the arguments values is that necessary to do it here?
 		// pay attention: while the arguments give their types, maybe it's a subtype of the type that the method can accept
 
-		System.out.print(quotes("method") + ":");
+		write(quotes("method") + ":");
 		// open object
 		this.objectStart();
 		// writing the name
-		System.out.print(quotes("name") + ":" + quotes(method.name()));
+		write(quotes("name") + ":" + quotes(method.name()));
 		this.joinElementListing();
 		// writing all arguments types
-		System.out.print(quotes("parameters") + ":");
+		write(quotes("parameters") + ":");
 		// open array
 		this.arrayStart();
 
@@ -52,11 +56,11 @@ public class LoggerJson implements ILoggerFormat {
 		Iterator<String> ite = method.argumentTypeNames().iterator();
 
 		if (ite.hasNext()) {
-			System.out.print(quotes(ite.next()));
+			write(quotes(ite.next()));
 		}
 		while (ite.hasNext()) {
 			this.joinElementListing();
-			System.out.print(quotes(ite.next()));
+			write(quotes(ite.next()));
 		}
 		// close array
 		this.arrayEnd();
@@ -69,7 +73,7 @@ public class LoggerJson implements ILoggerFormat {
 
 	@Override
 	public void methodArgumentStart() {
-		System.out.print(quotes("arguments") + ":");
+		write(quotes("arguments") + ":");
 
 		// open array
 		this.arrayStart();
@@ -86,20 +90,20 @@ public class LoggerJson implements ILoggerFormat {
 
 	@Override
 	public void unaccessibleField(int depth) {
-		System.out.print(quotes("<<UNACCESSIBLE>>"));
+		write(quotes("<<UNACCESSIBLE>>"));
 	}
 
 	@Override
 	public void fieldNameStart(String name, int depth) {
 		// open object for field
 		this.objectStart();
-		System.out.print(quotes("field") + ":");
+		write(quotes("field") + ":");
 		// open object for field description
 		this.objectStart();
 
-		System.out.print(quotes("name") + ":" + quotes(name));
+		write(quotes("name") + ":" + quotes(name));
 		this.joinElementListing();
-		System.out.print(quotes("value") + ":");
+		write(quotes("value") + ":");
 	}
 
 	@Override
@@ -112,7 +116,7 @@ public class LoggerJson implements ILoggerFormat {
 
 	@Override
 	public void methodReceiverStart() {
-		System.out.print(quotes("receiver") + ":");
+		write(quotes("receiver") + ":");
 		// open object
 		// Resolve the case of {
 		// this.objectStart();
@@ -126,17 +130,25 @@ public class LoggerJson implements ILoggerFormat {
 
 	@Override
 	public void nullValue(int depth) {
-		System.out.print("null");
+		write("null");
 	}
 
 	@Override
 	public void maxDepth(int depth) {
-		System.out.print(quotes("<<MAX_DEPTH_REACHED>>"));
+		write(quotes("<<MAX_DEPTH_REACHED>>"));
 	}
 
 	@Override
 	public void primitiveValue(PrimitiveValue value, int depth) {
-		System.out.print(value.toString());
+		this.objectStart();
+
+		write(quotes("type") + ":" + quotes(value.type().name()));
+
+		this.joinElementListing();
+
+		write(quotes("value") + ":" + quotes(value.toString()));
+
+		this.objectEnd();
 	}
 
 	@Override
@@ -146,19 +158,21 @@ public class LoggerJson implements ILoggerFormat {
 
 	@Override
 	public void objectReferenceAlreadyFound(ObjectReference value, int depth) {
-		System.out.print(quotes("<<Already_Studied>>"));
+		write(quotes("<<Already_Studied>>"));
 	}
 
 	@Override
 	public void objectReferenceStart(ObjectReference value, int depth) {
 		// open object for the reference
 		this.objectStart();
-		System.out.print(quotes("reference") + ":");
+		write(quotes("reference") + ":");
 		// open object for the description
 		this.objectStart();
-		System.out.print(quotes("uniqueId") + ":" + value.uniqueID());
+		write(quotes("type") + ":" + quotes(value.referenceType().name()));
 		this.joinElementListing();
-		System.out.print(quotes("object") + ":");
+		write(quotes("uniqueId") + ":" + value.uniqueID());
+		this.joinElementListing();
+		write(quotes("object") + ":");
 		// open array for the object fields
 		this.arrayStart();
 
@@ -176,7 +190,7 @@ public class LoggerJson implements ILoggerFormat {
 
 	@Override
 	public void emptyArray(int depth) {
-		System.out.print("[]");
+		write("[]");
 	}
 
 	@Override
@@ -204,21 +218,21 @@ public class LoggerJson implements ILoggerFormat {
 
 	@Override
 	public void classNotPrepared(int depth) {
-		System.out.print(quotes("<<CLASS_NOT_PREPARED>>"));
+		write(quotes("<<CLASS_NOT_PREPARED>>"));
 
 	}
 
 	@Override
 	public void joinElementListing() {
-		System.out.print(",");
+		write(",");
 	}
 
 	public void arrayStart() {
-		System.out.print("[");
+		write("[");
 	}
 
 	public void arrayEnd() {
-		System.out.print("]");
+		write("]");
 	}
 
 	private String quotes(String str) {
@@ -226,11 +240,11 @@ public class LoggerJson implements ILoggerFormat {
 	}
 
 	private void objectStart() {
-		System.out.print("{");
+		write("{");
 	}
 
 	private void objectEnd() {
-		System.out.print("}");
+		write("}");
 	}
 
 }

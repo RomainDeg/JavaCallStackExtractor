@@ -38,9 +38,16 @@ For adding a breakpoint indicating the last line of your call stack :
 For the start of the call stack :
 - threadName : the name of the method at the start of the call stack (generally it will be the main)
 
-#### 3) Launch the main of JDIAttach and collect the output in a file
+Fot the logging :
+- maxDepth : represent the maximum recursion algorithm to study object's fields and array's value can make
+- logger : the logging format, and take the constructor take a parameter to name the output file
+  - LoggerJson : json output
+  - LoggerText : txt output
+
+#### 3) Launch the main of JDIAttach, and the output will appear in the root of this git project
 
 ## Future additions
 
-This program could possibly work with java versions between 1.3 and 8, by changing packages imports (including com.sun.jdi dependencies).  
+1. This program could possibly work with java versions between 1.3 and 8, by changing packages imports (including com.sun.jdi dependencies).  
 No test of package modifications has been done yet so it's still only an hypothetical possibility to make it works this way in these versions.
+2. moving with the debugger steps or breakpoints to add temporality informations
