@@ -37,6 +37,11 @@ public class StackExtractor {
 	 */
 	public static int maxDepth;
 
+	/**
+	 * Used to indicates which Object has already been visited, to not visit again.
+	 */
+	private static Set<ObjectReference> visited = new HashSet<ObjectReference>();
+
 	public static void setLogger(ILoggerFormat log) {
 		logger = log;
 	}
@@ -53,11 +58,6 @@ public class StackExtractor {
 	public static void setMaxDepth(int depth) {
 		maxDepth = depth;
 	}
-
-	/**
-	 * Used to indicates which Object has already been visited, to not visit again.
-	 */
-	private static Set<ObjectReference> visited = new HashSet<ObjectReference>();
 
 	/**
 	 * extract a frame, by extracting the method signature, its arguments, and its receiver
@@ -96,17 +96,15 @@ public class StackExtractor {
 		try {
 			argumentsValueIterator = frame.getArgumentValues().iterator();
 
-			Iterator<String> namesIterator = method.argumentTypeNames().iterator();
-
 			// doing the first iteration separately because the logging potentially need
 			// to know if we are at the first element or not to join with a special character
-			if (namesIterator.hasNext()) {
-				extractAnArgument(argumentsValueIterator, namesIterator);
+			if (argumentsValueIterator.hasNext()) {
+				extractAnArgument(argumentsValueIterator);
 			}
 
-			while (namesIterator.hasNext()) {
+			while (argumentsValueIterator.hasNext()) {
 				logger.joinElementListing();
-				extractAnArgument(argumentsValueIterator, namesIterator);
+				extractAnArgument(argumentsValueIterator);
 			}
 		} catch (InternalException e) {
 			// Happens for native calls, and can't be obtained
@@ -121,12 +119,10 @@ public class StackExtractor {
 	 * @param argumentsValueIterator the iterator on the arguments
 	 * @param namesIterator          the iterator on the arguments type name
 	 */
-	private static void extractAnArgument(Iterator<Value> argumentsValueIterator, Iterator<String> namesIterator) {
+	private static void extractAnArgument(Iterator<Value> argumentsValueIterator) {
 		// Here we suppose that method.argumentTypeNames() and frame.getArgumentValues() have the same numbers of items
 		// With this supposition being always true, we can just check if one have next and iterate in both
-		logger.fieldNameStart(namesIterator.next(), 0);
 		extractValueRecursive(argumentsValueIterator.next(), 0);
-		logger.fieldNameEnd();
 	}
 
 	/**
@@ -185,37 +181,43 @@ public class StackExtractor {
 	private static void extractObjectReference(ObjectReference value, int depth) {
 		logger.objectReferenceStart(value, depth);
 
-		// TODO maybe we can add these object to visited ?
-		if (value instanceof StringReference) {
-			logger.stringReference((StringReference) value, depth);
-		} else if (value instanceof ArrayReference) {
-
-			// Parsing every value of the array
-			List<Value> arrayValues = ((ArrayReference) value).getValues();
-			if (arrayValues.size() == 0) {
-				logger.emptyArray(depth);
-			} else if (maxDepth != 0 & depth + 1 > maxDepth) {
-				// in case the max depth will be attained stop here to not make an array full of maxDepth messages
-				logger.maxDepth(depth);
-			} else {
-				logger.arrayStart();
-				// doing the first iteration separately because the logging potentially need
-				// to know if we are at the first element or not to join with a special character
-				extractArrayValue(depth, arrayValues, 0);
-
-				for (int i = 1; i < arrayValues.size(); i++) {
-					logger.joinElementListing();
-					extractArrayValue(depth, arrayValues, i);
-				}
-				logger.arrayEnd();
-			}
-
-		} else if (value instanceof ClassObjectReference) {
-			// using reflectedType because it is said to be more precise than referenceType
-			extractAllFields(value, ((ClassObjectReference) value).reflectedType(), depth);
-
+		if (visited.contains(value)) {
+			logger.objectReferenceAlreadyFound(value, depth);
 		} else {
-			extractAllFields(value, value.referenceType(), depth);
+			visited.add(value);
+
+			// TODO maybe we can add these object to visited ?
+			if (value instanceof StringReference) {
+				logger.stringReference((StringReference) value, depth);
+			} else if (value instanceof ArrayReference) {
+
+				// Parsing every value of the array
+				List<Value> arrayValues = ((ArrayReference) value).getValues();
+				if (arrayValues.size() == 0) {
+					logger.emptyArray(depth);
+				} else if (maxDepth != 0 & depth + 1 > maxDepth) {
+					// in case the max depth will be attained stop here to not make an array full of maxDepth messages
+					logger.maxDepth(depth);
+				} else {
+					logger.arrayStart();
+					// doing the first iteration separately because the logging potentially need
+					// to know if we are at the first element or not to join with a special character
+					extractArrayValue(depth, arrayValues, 0);
+
+					for (int i = 1; i < arrayValues.size(); i++) {
+						logger.joinElementListing();
+						extractArrayValue(depth, arrayValues, i);
+					}
+					logger.arrayEnd();
+				}
+
+			} else if (value instanceof ClassObjectReference) {
+				// using reflectedType because it is said to be more precise than referenceType
+				extractAllFields(value, ((ClassObjectReference) value).reflectedType(), depth);
+
+			} else {
+				extractAllFields(value, value.referenceType(), depth);
+			}
 		}
 		logger.objectReferenceEnd();
 	}
@@ -242,30 +244,26 @@ public class StackExtractor {
 	 */
 	private static void extractAllFields(ObjectReference ref, ReferenceType type, int depth) {
 		logger.fieldsStart();
-		if (visited.contains(ref)) {
-			logger.objectReferenceAlreadyFound(ref, depth);
+
+		// Check if the class is prepared, if not trying to get any field will throw an exception
+		// TODO maybe there is a way to force load the class, is that useful ? maybe the fact that it didn't load mean it's not useful
+		if (!type.isPrepared()) {
+			// Preparation involves creating the static fields for a class or interface and
+			// initializing such fields to their default values
+
+			logger.classNotPrepared(depth);
 		} else {
-			visited.add(ref);
+			Iterator<Field> iterator = type.allFields().iterator();
+			// doing the first iteration separately because the logging potentially need
+			// to know if we are at the first element or not to join with a special character
+			if (iterator.hasNext()) {
+				extractField(ref, depth, iterator.next());
+			}
 
-			// Check if the class is prepared, if not trying to get any field will throw an exception
-			// TODO maybe there is a way to force load the class, is that useful ? maybe the fact that it didn't load mean it's not useful
-			if (!type.isPrepared()) {
-				// Preparation involves creating the static fields for a class or interface and
-				// initializing such fields to their default values
+			while (iterator.hasNext()) {
+				logger.joinElementListing();
+				extractField(ref, depth, iterator.next());
 
-				logger.classNotPrepared(depth);
-			} else {
-				Iterator<Field> iterator = type.allFields().iterator();
-				// doing the first iteration separately because the logging potentially need
-				// to know if we are at the first element or not to join with a special character
-				if (iterator.hasNext()) {
-					extractField(ref, depth, iterator.next());
-				}
-
-				while (iterator.hasNext()) {
-					logger.joinElementListing();
-					extractField(ref, depth, iterator.next());
-				}
 			}
 		}
 

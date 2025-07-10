@@ -38,8 +38,7 @@ public class LoggerJson extends AbstractLoggerFormat {
 
 	@Override
 	public void methodSignature(Method method) {
-		// TODO the informations about the arguments types will also be obtained from the arguments values is that necessary to do it here?
-		// pay attention: while the arguments give their types, maybe it's a subtype of the type that the method can accept
+		// Retrieving the type of the parameters is important because it provides the most general type that can be used
 
 		write(quotes("method") + ":");
 		// open object
