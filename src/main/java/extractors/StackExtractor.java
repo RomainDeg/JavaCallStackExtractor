@@ -17,8 +17,8 @@ import com.sun.jdi.StringReference;
 import com.sun.jdi.Value;
 import com.sun.jdi.VoidValue;
 
-import logging.ILogger;
-import logging.LoggerPrintTxt;
+import logging.ILoggerFormat;
+import logging.LoggerText;
 
 import com.sun.jdi.ReferenceType;
 
@@ -26,28 +26,28 @@ import com.sun.jdi.ReferenceType;
  * This class extract all the information of a given stack frame to a text file
  */
 public class StackExtractor {
-	
+
 	/**
-	 * The logger used to collect extracted informations
-	 * Default value is LoggerPrintTxt
+	 * The logger used to collect extracted informations Default value is LoggerPrintTxt
 	 */
-	public static ILogger logger = new LoggerPrintTxt();
+	public static ILoggerFormat logger = new LoggerText();
 
 	/**
 	 * represent the maximum recursion algorithm to study object's fields and array's value can make
 	 */
 	public static int maxDepth;
-	
-	public static void setLogger(ILogger log) {
+
+	public static void setLogger(ILoggerFormat log) {
 		logger = log;
 	}
-	
-	public static ILogger getLogger() {
+
+	public static ILoggerFormat getLogger() {
 		return logger;
 	}
 
 	/**
 	 * Set the max depth recursion for the algorithm to study object's fields and array's value can make
+	 * 
 	 * @param depth the new max depth
 	 */
 	public static void setMaxDepth(int depth) {
@@ -77,7 +77,7 @@ public class StackExtractor {
 	 */
 	public static void extractMethod(StackFrame frame) {
 		Method method = frame.location().method();
-		logger.methodName(method);
+		logger.methodSignature(method);
 	}
 
 	/**
@@ -95,21 +95,38 @@ public class StackExtractor {
 		Iterator<Value> argumentsValueIterator;
 		try {
 			argumentsValueIterator = frame.getArgumentValues().iterator();
-		} catch (InternalException e) {
-			//Happens for native calls, and can't be obtained
-			logger.unaccessibleField();
-			return;
-		}
-		Iterator<String> namesIterator = method.argumentTypeNames().iterator();
 
-		while (namesIterator.hasNext()) {
-			// Here we suppose that method.argumentTypeNames() and frame.getArgumentValues() have the same numbers of items
-			// With this supposition being always true, we can just check if one have next and iterate in both
-			logger.fieldName(namesIterator.next());
-			
-			extractValueRecursive(argumentsValueIterator.next(), 0);
+			Iterator<String> namesIterator = method.argumentTypeNames().iterator();
+
+			// doing the first iteration separately because the logging potentially need
+			// to know if we are at the first element or not to join with a special character
+			if (namesIterator.hasNext()) {
+				extractAnArgument(argumentsValueIterator, namesIterator);
+			}
+
+			while (namesIterator.hasNext()) {
+				logger.joinElementListing();
+				extractAnArgument(argumentsValueIterator, namesIterator);
+			}
+		} catch (InternalException e) {
+			// Happens for native calls, and can't be obtained
+			logger.unaccessibleField(0);
 		}
+
 		logger.methodArgumentEnd();
+	}
+
+	/**
+	 * 
+	 * @param argumentsValueIterator the iterator on the arguments
+	 * @param namesIterator          the iterator on the arguments type name
+	 */
+	private static void extractAnArgument(Iterator<Value> argumentsValueIterator, Iterator<String> namesIterator) {
+		// Here we suppose that method.argumentTypeNames() and frame.getArgumentValues() have the same numbers of items
+		// With this supposition being always true, we can just check if one have next and iterate in both
+		logger.fieldNameStart(namesIterator.next(), 0);
+		extractValueRecursive(argumentsValueIterator.next(), 0);
+		logger.fieldNameEnd();
 	}
 
 	/**
@@ -130,12 +147,9 @@ public class StackExtractor {
 	 * @param indent the indent to add to make human able to understand what happen
 	 */
 	private static void extractValueRecursive(Value value, int depth) {
-		logger.valueStart();
 		if (maxDepth != 0 & depth > maxDepth) {
 			logger.maxDepth(depth);
-			return;
-		}
-		else if (value == null) {
+		} else if (value == null) {
 			logger.nullValue(depth);
 		} else if (value instanceof PrimitiveValue) {
 			extractPrimitiveValue((PrimitiveValue) value, depth);
@@ -149,7 +163,7 @@ public class StackExtractor {
 			// in case there would be another type
 			throw new IllegalStateException("Unknown Value Type: " + value.type().name() + ", parsing not yet implemented for this type");
 		}
-		logger.valueEnd();
+
 	}
 
 	/**
@@ -169,28 +183,33 @@ public class StackExtractor {
 	 * @param indent the indent to add to make human able to understand what happen
 	 */
 	private static void extractObjectReference(ObjectReference value, int depth) {
+		logger.objectReferenceStart(value, depth);
+
 		// TODO maybe we can add these object to visited ?
 		if (value instanceof StringReference) {
 			logger.stringReference((StringReference) value, depth);
 		} else if (value instanceof ArrayReference) {
-			logger.objectReferenceStart(value, depth);
 
 			// Parsing every value of the array
 			List<Value> arrayValues = ((ArrayReference) value).getValues();
 			if (arrayValues.size() == 0) {
 				logger.emptyArray(depth);
-			}
-			// in case the max depth will be attained stop before the spam of [max depth attained]
-			if (maxDepth != 0 & depth + 1 > maxDepth) {
+			} else if (maxDepth != 0 & depth + 1 > maxDepth) {
+				// in case the max depth will be attained stop before the spam of [max depth attained]
 				logger.maxDepth(depth);
-				return;
+			} else {
+				logger.arrayStart();
+				// doing the first iteration separately because the logging potentially need
+				// to know if we are at the first element or not to join with a special character
+				extractArrayValue(depth, arrayValues, 0);
+
+				for (int i = 1; i < arrayValues.size(); i++) {
+					logger.joinElementListing();
+					extractArrayValue(depth, arrayValues, i);
+				}
+				logger.arrayEnd();
 			}
-			for (int i = 0; i < arrayValues.size(); i++) {
-				logger.arrayValueStart(i,depth);
-				extractValueRecursive(arrayValues.get(i), depth + 1);
-				logger.arrayValueEnd();
-			}
-			logger.objectReferenceEnd();
+
 		} else if (value instanceof ClassObjectReference) {
 			// using reflectedType because it is said to be more precise than referenceType
 			extractAllFields(value, ((ClassObjectReference) value).reflectedType(), depth);
@@ -198,7 +217,20 @@ public class StackExtractor {
 		} else {
 			extractAllFields(value, value.referenceType(), depth);
 		}
+		logger.objectReferenceEnd();
+	}
 
+	/**
+	 * Extract one value of the array
+	 * 
+	 * @param depth       the current depth of the recursion
+	 * @param arrayValues the values of the array
+	 * @param index       the index of the value to extract
+	 */
+	private static void extractArrayValue(int depth, List<Value> arrayValues, int index) {
+		logger.arrayValueStart(index, depth);
+		extractValueRecursive(arrayValues.get(index), depth + 1);
+		logger.arrayValueEnd();
 	}
 
 	/**
@@ -211,42 +243,57 @@ public class StackExtractor {
 	private static void extractAllFields(ObjectReference ref, ReferenceType type, int depth) {
 		logger.fieldsStart();
 		if (visited.contains(ref)) {
-			logger.objectReference(ref,depth);
-			return;
-		}
-		visited.add(ref);
-		
-		logger.objectReferenceStart(ref, depth);
+			logger.objectReferenceAlreadyFound(ref, depth);
+		} else {
+			visited.add(ref);
 
-		// Check if the class is prepared, if not trying to get any field will throw an exception
-		// TODO maybe there is a way to force load the class, is that useful ? maybe the fact that it didn't load mean it's not useful
-		if (!type.isPrepared()) {
-			// Preparation involves creating the static fields for a class or interface and
-			// initializing such fields to their default values
-			
-			logger.classNotPrepared(depth);
-			return;
-		}
+			// Check if the class is prepared, if not trying to get any field will throw an exception
+			// TODO maybe there is a way to force load the class, is that useful ? maybe the fact that it didn't load mean it's not useful
+			if (!type.isPrepared()) {
+				// Preparation involves creating the static fields for a class or interface and
+				// initializing such fields to their default values
 
-		for (Field field : type.allFields()) {
-			try {
-				// TODO
-				// We actually extract the static and final fields, should we?
-				// it's potential information but could also be noise
-				Value fieldValue = ref.getValue(field);
-				logger.fieldNameStart(field.name(),depth);
-				
-				extractValueRecursive(fieldValue, depth + 1);
-				
-				logger.fieldNameEnd(field.name());
+				logger.classNotPrepared(depth);
+			} else {
+				Iterator<Field> iterator = type.allFields().iterator();
+				// doing the first iteration separately because the logging potentially need
+				// to know if we are at the first element or not to join with a special character
+				if (iterator.hasNext()) {
+					extractField(ref, depth, iterator.next());
+				}
 
-			} catch (IllegalArgumentException e) {
-				logger.unaccessibleField(depth);
+				while (iterator.hasNext()) {
+					logger.joinElementListing();
+					extractField(ref, depth, iterator.next());
+				}
 			}
 		}
-		logger.objectReferenceEnd();
-		
+
 		logger.fieldsEnd();
+	}
+
+	/**
+	 * Extract one field of an Object reference
+	 * 
+	 * @param ref      the ObjectReference where the field is
+	 * @param depth    the depth of the current recursion
+	 * @param iterator the iterator on fields
+	 */
+	private static void extractField(ObjectReference ref, int depth, Field field) {
+		try {
+			// TODO
+			// We actually extract the static and final fields, should we?
+			// it's potential information but could also be noise
+			Value fieldValue = ref.getValue(field);
+			logger.fieldNameStart(field.name(), depth);
+
+			extractValueRecursive(fieldValue, depth + 1);
+
+			logger.fieldNameEnd();
+
+		} catch (IllegalArgumentException e) {
+			logger.unaccessibleField(depth);
+		}
 	}
 
 }

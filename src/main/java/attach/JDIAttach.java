@@ -3,8 +3,9 @@ package attach;
 import com.sun.jdi.*;
 import com.sun.jdi.connect.*;
 import extractors.StackExtractor;
-import logging.ILogger;
-import logging.LoggerPrintTxt;
+import logging.ILoggerFormat;
+import logging.LoggerJson;
+import logging.LoggerText;
 
 import java.io.IOException;
 import java.net.ConnectException;
@@ -33,7 +34,7 @@ public class JDIAttach {
 		// define the max depth of the recursive instance research
 		int maxDepth = 20;// 0 for no max depth
 		// Define what logging method will be used
-		ILogger logger = new LoggerPrintTxt();
+		ILoggerFormat logger = new LoggerJson();
 
 		StackExtractor.setMaxDepth(maxDepth);
 		StackExtractor.setLogger(logger);
@@ -72,12 +73,22 @@ public class JDIAttach {
 			// iterating from the end of the list to start the logging from the first method called
 			List<StackFrame> frames = thread.frames();
 			ListIterator<StackFrame> it = frames.listIterator(frames.size());
-			for (int i = 1; i <= frames.size(); i++) {
-				StackExtractor.logger.frameLineStart(i);
+			
+
+			// doing the first iteration separately because the logging potentially need
+			// to know if we are at the first element or not to join with a special character
+			StackExtractor.logger.frameLineStart(1);
+			
+			// extracting the stack frame
+			StackExtractor.extract(it.previous());
+			StackExtractor.logger.frameLineEnd();
+			
+			for (int i = 2; i <= frames.size(); i++) {
+				StackExtractor.logger.joinElementListing();
 				
-				StackFrame frame = it.previous();
+				StackExtractor.logger.frameLineStart(i);
 				// extracting the stack frame
-				StackExtractor.extract(frame);
+				StackExtractor.extract(it.previous());
 				StackExtractor.logger.frameLineEnd();
 			}
 			StackExtractor.logger.framesEnd();
