@@ -15,6 +15,9 @@ public class LoggerJson extends AbstractLoggerFormat {
 
 	@Override
 	public void framesStart() {
+		this.objectStart();
+
+		write(quotes("Lines") + ":");
 		this.arrayStart();
 	}
 
@@ -22,6 +25,7 @@ public class LoggerJson extends AbstractLoggerFormat {
 	public void framesEnd() {
 		this.arrayEnd();
 
+		this.objectEnd();
 	}
 
 	@Override
@@ -93,6 +97,25 @@ public class LoggerJson extends AbstractLoggerFormat {
 	}
 
 	@Override
+	public void fieldsStart() {
+		// open object for fields
+		this.objectStart();
+
+		write(quotes("fields") + ":");
+		// open array
+		this.arrayStart();
+	}
+
+	@Override
+	public void fieldsEnd() {
+		// open array
+		this.arrayEnd();
+
+		// close fields
+		this.objectEnd();
+	}
+
+	@Override
 	public void fieldNameStart(String name, int depth) {
 		// open object for field
 		this.objectStart();
@@ -139,6 +162,12 @@ public class LoggerJson extends AbstractLoggerFormat {
 
 	@Override
 	public void primitiveValue(PrimitiveValue value, int depth) {
+		// open object for the primitive type
+		this.objectStart();
+
+		write(quotes("primitiveType") + ":");
+
+		// open object for the description of the type
 		this.objectStart();
 
 		write(quotes("type") + ":" + quotes(value.type().name()));
@@ -147,12 +176,16 @@ public class LoggerJson extends AbstractLoggerFormat {
 
 		write(quotes("value") + ":" + quotes(value.toString()));
 
+		// close object for the description of the type
+		this.objectEnd();
+
+		// close object for the primitive type
 		this.objectEnd();
 	}
 
 	@Override
 	public void stringReference(StringReference value, int depth) {
-		System.out.print(quotes(value.value()));
+		write(quotes(value.value()));
 	}
 
 	@Override
@@ -171,16 +204,12 @@ public class LoggerJson extends AbstractLoggerFormat {
 		this.joinElementListing();
 		write(quotes("uniqueId") + ":" + value.uniqueID());
 		this.joinElementListing();
-		write(quotes("object") + ":");
-		// open array for the object fields
-		this.arrayStart();
+		write(quotes("refered") + ":");
 
 	}
 
 	@Override
 	public void objectReferenceEnd() {
-		// close array for the object fields
-		this.arrayEnd();
 		// close object for the reference
 		this.objectEnd();
 		// close object for the description
@@ -201,18 +230,6 @@ public class LoggerJson extends AbstractLoggerFormat {
 	public void arrayValueEnd() {
 		// Nothing
 
-	}
-
-	@Override
-	public void fieldsStart() {
-		// open array
-		this.arrayStart();
-	}
-
-	@Override
-	public void fieldsEnd() {
-		// open array
-		this.arrayEnd();
 	}
 
 	@Override

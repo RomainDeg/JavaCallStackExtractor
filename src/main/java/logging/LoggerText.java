@@ -60,6 +60,16 @@ public class LoggerText extends AbstractLoggerFormat {
 	}
 
 	@Override
+	public void fieldsStart() {
+		// Nothing
+	}
+
+	@Override
+	public void fieldsEnd() {
+		// Nothing
+	}
+
+	@Override
 	public void fieldNameStart(String name, int depth) {
 		addIndent(depth);
 		writeln(name + " = ");
@@ -135,16 +145,6 @@ public class LoggerText extends AbstractLoggerFormat {
 
 	@Override
 	public void arrayValueEnd() {
-		// Nothing
-	}
-
-	@Override
-	public void fieldsStart() {
-		// Nothing
-	}
-
-	@Override
-	public void fieldsEnd() {
 		// Nothing
 	}
 
