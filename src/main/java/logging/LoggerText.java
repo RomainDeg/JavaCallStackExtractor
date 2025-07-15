@@ -106,7 +106,7 @@ public class LoggerText extends AbstractLoggerFormat {
 	@Override
 	public void primitiveValue(PrimitiveValue value, int depth) {
 		addIndent(depth);
-		writeln(value.type().name() + " = " + value.toString());
+		writeln(value.type().name() + " = " + value);
 	}
 
 	@Override

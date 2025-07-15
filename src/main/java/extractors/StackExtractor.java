@@ -40,14 +40,10 @@ public class StackExtractor {
 	/**
 	 * Used to indicates which Object has already been visited, to not visit again.
 	 */
-	private static Set<ObjectReference> visited = new HashSet<ObjectReference>();
+	private static Set<ObjectReference> visited = new HashSet<>();
 
 	public static void setLogger(ILoggerFormat log) {
 		logger = log;
-	}
-
-	public static ILoggerFormat getLogger() {
-		return logger;
 	}
 
 	/**
@@ -114,7 +110,6 @@ public class StackExtractor {
 	/**
 	 * 
 	 * @param argumentsValueIterator the iterator on the arguments
-	 * @param namesIterator          the iterator on the arguments type name
 	 */
 	private static void extractAnArgument(Iterator<Value> argumentsValueIterator) {
 		// Here we suppose that method.argumentTypeNames() and frame.getArgumentValues() have the same numbers of items
@@ -186,7 +181,7 @@ public class StackExtractor {
 
 				// Parsing every value of the array
 				List<Value> arrayValues = ((ArrayReference) value).getValues();
-				if (arrayValues.size() == 0) {
+				if (arrayValues.isEmpty()) {
 					logger.emptyArray(depth);
 				} else if (maxDepth != 0 & depth + 1 > maxDepth) {
 					// in case the max depth will be attained stop here to not make an array full of maxDepth messages
@@ -267,7 +262,7 @@ public class StackExtractor {
 	 * 
 	 * @param ref      the ObjectReference where the field is
 	 * @param depth    the depth of the current recursion
-	 * @param iterator the iterator on fields
+	 * @param field the field to extract
 	 */
 	private static void extractField(ObjectReference ref, int depth, Field field) {
 		try {
