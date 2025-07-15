@@ -88,9 +88,6 @@ public class StackExtractor {
 	public static void extractArguments(StackFrame frame) {
 		logger.methodArgumentStart();
 
-		// getting the method associated to this frame
-		Method method = frame.location().method();
-
 		// arguments can sometimes not be accessible, if that's the case, stop here
 		Iterator<Value> argumentsValueIterator;
 		try {
@@ -140,7 +137,6 @@ public class StackExtractor {
 	 * extract the given value recursively to make sure no information are lost in the process
 	 * 
 	 * @param value  the value to extract
-	 * @param indent the indent to add to make human able to understand what happen
 	 */
 	private static void extractValueRecursive(Value value, int depth) {
 		if (maxDepth != 0 & depth > maxDepth) {
@@ -166,7 +162,6 @@ public class StackExtractor {
 	 * extract given the primitive value
 	 * 
 	 * @param value  the primitiveValue to extract
-	 * @param indent the indent to add to make human able to understand what happen
 	 */
 	private static void extractPrimitiveValue(PrimitiveValue value, int depth) {
 		logger.primitiveValue(value, depth);
@@ -176,7 +171,6 @@ public class StackExtractor {
 	 * extract the given ObjectReference
 	 * 
 	 * @param value  the ObjectReference to extract
-	 * @param indent the indent to add to make human able to understand what happen
 	 */
 	private static void extractObjectReference(ObjectReference value, int depth) {
 		logger.objectReferenceStart(value, depth);
@@ -239,7 +233,6 @@ public class StackExtractor {
 	 * extract all the fields of an ObjectReference
 	 * 
 	 * @param ref    the ObjectReference having the fields to extract
-	 * @param indent the indent to add to make human able to understand what happen
 	 * @param type   the reference type of the ObjectReference
 	 */
 	private static void extractAllFields(ObjectReference ref, ReferenceType type, int depth) {
