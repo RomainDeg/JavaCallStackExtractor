@@ -180,7 +180,6 @@ public class StackExtractor {
 		} else {
 			visited.add(value);
 
-			// TODO maybe we can add these object to visited ?
 			if (value instanceof StringReference) {
 				logger.stringReference((StringReference) value, depth);
 			} else if (value instanceof ArrayReference) {
