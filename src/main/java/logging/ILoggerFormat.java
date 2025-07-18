@@ -67,4 +67,8 @@ public interface ILoggerFormat {
 
 	void arrayEnd();
 
+	void arrayReferenceStart();
+
+	void arrayReferenceEnd();
+
 }

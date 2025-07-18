@@ -171,4 +171,16 @@ public class LoggerText extends AbstractLoggerFormat {
 
 	}
 
+	@Override
+	public void arrayReferenceStart() {
+		// Nothing
+
+	}
+
+	@Override
+	public void arrayReferenceEnd() {
+		// Nothing
+
+	}
+
 }

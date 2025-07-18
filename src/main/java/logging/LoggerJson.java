@@ -218,7 +218,7 @@ public class LoggerJson extends AbstractLoggerFormat {
 
 	@Override
 	public void emptyArray(int depth) {
-		write("[]");
+		// Nothing
 	}
 
 	@Override
@@ -241,6 +241,20 @@ public class LoggerJson extends AbstractLoggerFormat {
 	@Override
 	public void joinElementListing() {
 		write(",");
+	}
+
+	@Override
+	public void arrayReferenceStart() {
+		this.objectStart();
+		write(quotes("elements") + ":");
+		this.arrayStart();
+
+	}
+
+	@Override
+	public void arrayReferenceEnd() {
+		this.arrayEnd();
+		this.objectEnd();
 	}
 
 	public void arrayStart() {

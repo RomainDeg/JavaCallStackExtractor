@@ -131,7 +131,7 @@ public class StackExtractor {
 	/**
 	 * extract the given value recursively to make sure no information are lost in the process
 	 * 
-	 * @param value  the value to extract
+	 * @param value the value to extract
 	 */
 	private static void extractValueRecursive(Value value, int depth) {
 		if (maxDepth != 0 & depth > maxDepth) {
@@ -156,7 +156,7 @@ public class StackExtractor {
 	/**
 	 * extract given the primitive value
 	 * 
-	 * @param value  the primitiveValue to extract
+	 * @param value the primitiveValue to extract
 	 */
 	private static void extractPrimitiveValue(PrimitiveValue value, int depth) {
 		logger.primitiveValue(value, depth);
@@ -165,7 +165,7 @@ public class StackExtractor {
 	/**
 	 * extract the given ObjectReference
 	 * 
-	 * @param value  the ObjectReference to extract
+	 * @param value the ObjectReference to extract
 	 */
 	private static void extractObjectReference(ObjectReference value, int depth) {
 		logger.objectReferenceStart(value, depth);
@@ -179,6 +179,7 @@ public class StackExtractor {
 				logger.stringReference((StringReference) value, depth);
 			} else if (value instanceof ArrayReference) {
 
+				logger.arrayReferenceStart();
 				// Parsing every value of the array
 				List<Value> arrayValues = ((ArrayReference) value).getValues();
 				if (arrayValues.isEmpty()) {
@@ -187,7 +188,6 @@ public class StackExtractor {
 					// in case the max depth will be attained stop here to not make an array full of maxDepth messages
 					logger.maxDepth(depth);
 				} else {
-					logger.arrayStart();
 					// doing the first iteration separately because the logging potentially need
 					// to know if we are at the first element or not to join with a special character
 					extractArrayValue(depth, arrayValues, 0);
@@ -196,9 +196,9 @@ public class StackExtractor {
 						logger.joinElementListing();
 						extractArrayValue(depth, arrayValues, i);
 					}
-					logger.arrayEnd();
-				}
 
+				}
+				logger.arrayReferenceEnd();
 			} else if (value instanceof ClassObjectReference) {
 				// using reflectedType because it is said to be more precise than referenceType
 				extractAllFields(value, ((ClassObjectReference) value).reflectedType(), depth);
@@ -226,8 +226,8 @@ public class StackExtractor {
 	/**
 	 * extract all the fields of an ObjectReference
 	 * 
-	 * @param ref    the ObjectReference having the fields to extract
-	 * @param type   the reference type of the ObjectReference
+	 * @param ref  the ObjectReference having the fields to extract
+	 * @param type the reference type of the ObjectReference
 	 */
 	private static void extractAllFields(ObjectReference ref, ReferenceType type, int depth) {
 		logger.fieldsStart();
@@ -260,8 +260,8 @@ public class StackExtractor {
 	/**
 	 * Extract one field of an Object reference
 	 * 
-	 * @param ref      the ObjectReference where the field is
-	 * @param depth    the depth of the current recursion
+	 * @param ref   the ObjectReference where the field is
+	 * @param depth the depth of the current recursion
 	 * @param field the field to extract
 	 */
 	private static void extractField(ObjectReference ref, int depth, Field field) {
