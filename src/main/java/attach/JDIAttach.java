@@ -4,8 +4,7 @@ import com.sun.jdi.*;
 import com.sun.jdi.connect.*;
 import extractors.StackExtractor;
 import logging.ILoggerFormat;
-import logging.LoggerJson;
-import logging.LoggerText;
+import logging.*;
 
 import java.io.IOException;
 import java.net.ConnectException;

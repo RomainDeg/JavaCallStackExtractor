@@ -2,6 +2,8 @@ package logging;
 
 import java.util.Iterator;
 
+import com.sun.jdi.AbsentInformationException;
+import com.sun.jdi.LocalVariable;
 import com.sun.jdi.Method;
 import com.sun.jdi.ObjectReference;
 import com.sun.jdi.PrimitiveValue;
@@ -10,7 +12,7 @@ import com.sun.jdi.StringReference;
 public class LoggerJson extends AbstractLoggerFormat {
 
 	public LoggerJson(String outputName) {
-		super(outputName, "json");
+		super(outputName, "cs");
 	}
 
 	@Override
@@ -55,22 +57,14 @@ public class LoggerJson extends AbstractLoggerFormat {
 		// open array
 		this.arrayStart();
 
-		// fill the array with the parameters types
-		Iterator<String> ite = method.argumentTypeNames().iterator();
+		// fill the array with the parameters names and type
+		parameters(method);
 
-		if (ite.hasNext()) {
-			write(quotes(ite.next()));
-		}
-		while (ite.hasNext()) {
-			this.joinElementListing();
-			write(quotes(ite.next()));
-		}
 		// close array
 		this.arrayEnd();
 
 		// close object
 		this.objectEnd();
-
 		this.joinElementListing();
 	}
 
@@ -263,6 +257,60 @@ public class LoggerJson extends AbstractLoggerFormat {
 
 	public void arrayEnd() {
 		write("]");
+	}
+
+	private void parameters(Method method) {
+		try {
+			// trying to obtain the arguments informations
+			Iterator<LocalVariable> ite = method.arguments().iterator();
+
+			if (ite.hasNext()) {
+				parameter(ite.next());
+			}
+			while (ite.hasNext()) {
+				this.joinElementListing();
+				parameter(ite.next());
+			}
+
+		} catch (AbsentInformationException e) {
+			// arguments name could not be obtained
+			// Since the name are not obtainable just log the parameters types
+			Iterator<String> ite = method.argumentTypeNames().iterator();
+
+			if (ite.hasNext()) {
+				parameter(ite.next());
+			}
+			while (ite.hasNext()) {
+				this.joinElementListing();
+				parameter(ite.next());
+			}
+		}
+	}
+
+	/*
+	 * log the name and type of the parameter if the LocalVariable could be obtained
+	 */
+	private void parameter(LocalVariable var) {
+		this.objectStart();
+		write(quotes("name") + ":");
+		write(quotes(var.name()));
+		this.joinElementListing();
+		write(quotes("type") + ":");
+		write(quotes(var.typeName()));
+		this.objectEnd();
+	}
+
+	/*
+	 * log only the type of the parameter if the LocalVariable could not be obtained
+	 */
+	private void parameter(String typeName) {
+		this.objectStart();
+		write(quotes("name") + ":");
+		this.nullValue(0);
+		this.joinElementListing();
+		write(quotes("type") + ":");
+		write(quotes(typeName));
+		this.objectEnd();
 	}
 
 	private String quotes(String str) {
