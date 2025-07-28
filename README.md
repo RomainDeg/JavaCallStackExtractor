@@ -1,6 +1,6 @@
 # JavaCallStackExtractor  :
 
-This project offers the possibility to extract the maximum information available from a Java callstack in a text file.
+This project offers the possibility to extract the maximum information available from a Java callstack in a text-based file.
 
 
 ##  How to use

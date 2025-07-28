@@ -6,6 +6,7 @@ import extractors.StackExtractor;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.net.ConnectException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -26,7 +27,6 @@ public class JDIAttach {
 		// TODO change the fielName to be an argument of the program
 		// TODO Maybe try to not attach to a vm but instatiate it ourselves
 		// TODO Add a number of stop before activating the breakpoint in the config, so that if you wan't to stop on the third call, you can
-		// TODO Add a readme for explaining how to add another logger format
 		// reading the config file
 		String fileName = "config.json";
 		try {

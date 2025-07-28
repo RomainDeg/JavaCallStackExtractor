@@ -7,6 +7,7 @@ import com.sun.jdi.ObjectReference;
 import com.sun.jdi.PrimitiveValue;
 import com.sun.jdi.StringReference;
 
+//TODO add documentation
 public interface ILoggerFormat {
 
 	void closeWriter() throws IOException;
@@ -62,10 +63,6 @@ public interface ILoggerFormat {
 	void classNotPrepared(int depth);
 
 	void joinElementListing();
-
-	void arrayStart();
-
-	void arrayEnd();
 
 	void arrayReferenceStart();
 

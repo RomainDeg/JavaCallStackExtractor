@@ -9,6 +9,8 @@ import com.sun.jdi.ObjectReference;
 import com.sun.jdi.PrimitiveValue;
 import com.sun.jdi.StringReference;
 
+import extractors.StackExtractor;
+
 public class LoggerJson extends AbstractLoggerFormat {
 
 	public LoggerJson(String outputName, String Extension) {
@@ -251,11 +253,11 @@ public class LoggerJson extends AbstractLoggerFormat {
 		this.objectEnd();
 	}
 
-	public void arrayStart() {
+	private void arrayStart() {
 		write("[");
 	}
 
-	public void arrayEnd() {
+	private void arrayEnd() {
 		write("]");
 	}
 

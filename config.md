@@ -46,6 +46,6 @@ This variable define the maximum depth recursion of the instance logging, set 0 
 
 ### logging
 This variable holds information for the logging format and wanted output.
-- format : the logging format, can be either txt or json (Other can be easily added see addLoggerFormat.md (not yet writen))
+- format : the logging format, can be either txt or json (Other can be easily added see [addLoggerFormat.md](./addLoggerFormat.md))
 - outputName : name of the output file
 - extension : extension of the output file, default at "cs" because this project original use is for a Moose analysis (See [FamixCallStack](https://github.com/LeoDefossez/FamixCallStack#))

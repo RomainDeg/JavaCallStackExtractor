@@ -1,6 +1,8 @@
 package extractors;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -33,6 +35,8 @@ import com.sun.jdi.ReferenceType;
  */
 public class StackExtractor {
 
+	public static Map<String, BiFunction<String, String, ILoggerFormat>> loggerChoice = registerAllLoggers();
+
 	/**
 	 * The logger used to collect extracted informations
 	 */
@@ -54,21 +58,32 @@ public class StackExtractor {
 	 * @param loggerInfos informations to instantiate the logger
 	 */
 	public StackExtractor(JsonNode loggerInfos, int depth) {
+		 if (loggerInfos == null || !loggerInfos.has("format") || !loggerInfos.has("outputName") || !loggerInfos.has("extension")) {
+		        throw new IllegalArgumentException("Missing required fields in loggerInfos: 'format', 'outputName', or 'extension'");
+		    }
+		
 		// logger creation
-		Map<String, BiFunction<String, String, ILoggerFormat>> loggerCreation = new HashMap<>();
-
-		// TODO move this to class instantiations
-		loggerCreation.put("json", (name, extension) -> new LoggerJson(name, extension));
-		loggerCreation.put("txt", (name, extension) -> new LoggerText(name, extension));
-
 		String format = loggerInfos.get("format").textValue();
 		String outputName = loggerInfos.get("outputName").textValue();
 		String extension = loggerInfos.get("extension").textValue();
+		
+		if (!loggerChoice.containsKey(format)) {
+	        throw new IllegalArgumentException("Logger format not recognized: " + format);
+	    }
 
-		logger = loggerCreation.get(format).apply(outputName, extension);
-
+		logger = loggerChoice.get(format).apply(outputName, extension);
+		
 		// max depth setting
 		maxDepth = depth;
+	}
+	
+	public static Map<String, BiFunction<String, String, ILoggerFormat>> registerAllLoggers() {
+		Map<String, BiFunction<String, String, ILoggerFormat>> res = new HashMap<>();
+		// json format
+		res.put("json", (name, extension) -> new LoggerJson(name, extension));
+		// txt format
+		res.put("txt", (name, extension) -> new LoggerText(name, extension));
+		return res;
 	}
 
 	/**
