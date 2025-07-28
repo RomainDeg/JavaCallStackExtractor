@@ -5,8 +5,6 @@ import com.sun.jdi.ObjectReference;
 import com.sun.jdi.PrimitiveValue;
 import com.sun.jdi.StringReference;
 
-import extractors.StackExtractor;
-
 public class LoggerText extends AbstractLoggerFormat {
 
 	private static String indent = "  ";
