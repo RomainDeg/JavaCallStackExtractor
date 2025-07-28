@@ -13,7 +13,7 @@ Try synchronizing the java version used on the program to analyze and this progr
 -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5006  
 
 As a reference here is how you add it in a run configuration on eclipse :  
-	<img src="run-Config-VMargs.png" width="460" height="331">  
+	<img src="utils/image/run-Config-VMargs.png" width="460" height="331">  
 
 This command enables debug mode on the Java VM:  
 - jdwp: Java Debug Wire Protocol
@@ -23,6 +23,6 @@ This command enables debug mode on the Java VM:
 - address=5006: Indicates the port on which the JVM will wait for a connection
 
 #### 2) Modify the config.json to make JDI attach works on your project
-Check [config.md](./config.md) for more details
+Check [config.md](utils/tutorials/config.md) for more details
 
 #### 3) Launch the main of JDIAttach, and the output will appear in the root of this git project
