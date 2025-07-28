@@ -22,32 +22,7 @@ This command enables debug mode on the Java VM:
 - suspend=y: Indicates that the JVM is waiting for a debugger to connect before starting execution
 - address=5006: Indicates the port on which the JVM will wait for a connection
 
-
-#### 2) Modify the variables in the main program in JDIAttach to adapt it for your usage
-
-Here is a quick explanation of what these variables mean :  
-For attaching this program to yours :  
-- name : of the host (if done locally it will stay at "localhost")
-- port : address of the VM (if using the given argument in the part 1, will stay on "5006")
-
-For adding a breakpoint indicating the last line of your call stack :  
-- className :  the name of the class where the method is situated
-- methodName : the name of the method
-- methodArguments : name of all arguments type of the method in the declaration order
-
-For the start of the call stack :
-- threadName : the name of the method at the start of the call stack (generally it will be the main)
-
-Fot the logging :
-- maxDepth : represent the maximum recursion algorithm to study object's fields and array's value can make
-- logger : the logging format, and take the constructor take a parameter to name the output file
-  - LoggerJson : json output
-  - LoggerText : txt output
+#### 2) Modify the config.json to make JDI attach works on your project
+Check [config.md](./config.md) for more details
 
 #### 3) Launch the main of JDIAttach, and the output will appear in the root of this git project
-
-## Future additions
-
-1. This program could possibly work with java versions between 1.3 and 8, by changing packages imports (including com.sun.jdi dependencies).  
-No test of package modifications has been done yet so it's still only an hypothetical possibility to make it works this way in these versions.
-2. moving with the debugger steps or breakpoints to add temporality informations

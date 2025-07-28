@@ -3,49 +3,51 @@ package attach;
 import com.sun.jdi.*;
 import com.sun.jdi.connect.*;
 import extractors.StackExtractor;
-import logging.ILoggerFormat;
-import logging.*;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Attach to a java virtual machine to extract the call stack to a text file
  */
 public class JDIAttach {
 
+	public static JsonNode config;
+	
+	public static StackExtractor extractor;
+
 	public static void main(String[] args) throws Exception {
+		// TODO change the fielName to be an argument of the program
+		// TODO Maybe try to not attach to a vm but instatiate it ourselves
+		// TODO Add a number of stop before activating the breakpoint in the config, so that if you wan't to stop on the third call, you can
+		// TODO Add a readme for explaining how to add another logger format
+		// reading the config file
+		String fileName = "config.json";
+		try {
+			ObjectMapper mapper = new ObjectMapper();
+			config = mapper.readTree(new File(fileName));
 
-		// setting the variable that could become argument of the program
-		String host = "localhost";
-		String port = "5006";
-
-		String threadName = "main"; // name of the method creating the callStack
-
-		// all informations of the method where a breakpoint should be added
-		String className = "java.lang.Runtime";
-		String methodName = "exec";
-		List<String> methodArguments = Arrays.asList("java.lang.String"); // can be null if there's only one occurrence on the method's name in the
-																			// class
-
-		// define the max depth of the recursive instance research
-		int maxDepth = 20;// 0 for no max depth
-		// Define what logging method will be used and give the name of the output file in argument
-		ILoggerFormat logger = new LoggerJson("JDIOutput");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		
-		StackExtractor.setMaxDepth(maxDepth);
-		StackExtractor.setLogger(logger);
+		// StackExtractor informations setting
+		extractor = new StackExtractor(config.get("logging"),config.get("maxDepth").intValue());
 
 		// getting the VM
-		VirtualMachine vm = attachToJVM(host, port);
+		VirtualMachine vm = attachToJVM();
 
 		// Adding the breakpoint
-		BreakPointInstaller.addBreakpoint(vm, className, methodName, methodArguments);
+		BreakPointInstaller.addBreakpoint(vm, config.get("breakpoint"));
 
 		// Searching for the wanted thread
-		ThreadReference thread = getThread(threadName, vm);
+		ThreadReference thread = getThread(vm);
 
 		// resuming the process of the main
 		thread.resume();
@@ -59,7 +61,7 @@ public class JDIAttach {
 		// properly disconnecting
 		vm.dispose();
 		// close the writer in the logger
-		logger.closeWriter();
+		extractor.closeLogger();
 	}
 
 	/**
@@ -70,28 +72,28 @@ public class JDIAttach {
 	private static void extractCallStack(ThreadReference thread) {
 
 		try {
-			StackExtractor.logger.framesStart();
+			extractor.getLogger().framesStart();
 			// iterating from the end of the list to start the logging from the first method called
 			List<StackFrame> frames = thread.frames();
 			ListIterator<StackFrame> it = frames.listIterator(frames.size());
 
 			// doing the first iteration separately because the logging potentially need
 			// to know if we are at the first element or not to join with a special character
-			StackExtractor.logger.frameLineStart(1);
+			extractor.getLogger().frameLineStart(1);
 
 			// extracting the stack frame
-			StackExtractor.extract(it.previous());
-			StackExtractor.logger.frameLineEnd();
+			extractor.extract(it.previous());
+			extractor.getLogger().frameLineEnd();
 
 			for (int i = 2; i <= frames.size(); i++) {
-				StackExtractor.logger.joinElementListing();
+				extractor.getLogger().joinElementListing();
 
-				StackExtractor.logger.frameLineStart(i);
+				extractor.getLogger().frameLineStart(i);
 				// extracting the stack frame
-				StackExtractor.extract(it.previous());
-				StackExtractor.logger.frameLineEnd();
+				extractor.extract(it.previous());
+				extractor.getLogger().frameLineEnd();
 			}
-			StackExtractor.logger.framesEnd();
+			extractor.getLogger().framesEnd();
 		} catch (IncompatibleThreadStateException e) {
 			// Should not happen because we are supposed to be at a breakpoint
 			throw new IllegalStateException("Thread should be at a breakpoint but isn't");
@@ -122,21 +124,20 @@ public class JDIAttach {
 	/**
 	 * Returns the thread with the chosen name if one exist in the given VM
 	 * 
-	 * @param threadName the name of the searched thread
 	 * @param vm         the virtual machine where the thread is supposed to be
 	 * @return the thread with the chosen name if one exist in the given VM
 	 * @throws IllegalStateException if no thread can be found
 	 */
-	private static ThreadReference getThread(String threadName, VirtualMachine vm) {
+	private static ThreadReference getThread( VirtualMachine vm) {
 		ThreadReference main = null;
 		for (ThreadReference thread : vm.allThreads()) {
-			if (thread.name().equals(threadName)) {
+			if (thread.name().equals(config.get("sourceMethod").textValue())) {
 				main = thread;
 				break;
 			}
 		}
 		if (main == null) {
-			throw new IllegalStateException("No thread nammed " + threadName + "was found");
+			throw new IllegalStateException("No thread nammed " + config.get("threadName") + "was found");
 		}
 		return main;
 	}
@@ -144,13 +145,14 @@ public class JDIAttach {
 	/**
 	 * Find the Virtual Machine to attach this program to
 	 * 
-	 * @param host name of the host
-	 * @param port address of the VM
 	 * @return the Virtual Machine if one found
 	 * @throws IOException                        when unable to attach.
 	 * @throws IllegalConnectorArgumentsException if no connector socket can be used.
 	 */
-	public static VirtualMachine attachToJVM(String host, String port) throws IllegalConnectorArgumentsException, IOException {
+	public static VirtualMachine attachToJVM() throws IllegalConnectorArgumentsException, IOException {
+		// Getting the configs for the vm
+		JsonNode vmConfig = config.get("vm");
+		
 		VirtualMachineManager vmm = Bootstrap.virtualMachineManager();
 		AttachingConnector connector = null;
 
@@ -167,8 +169,9 @@ public class JDIAttach {
 
 		// Configure the arguments
 		Map<String, Connector.Argument> arguments = connector.defaultArguments();
-		arguments.get("hostname").setValue(host);
-		arguments.get("port").setValue(port); // need to correspond to the JVM address
+
+		arguments.get("hostname").setValue(vmConfig.get("host").textValue());
+		arguments.get("port").setValue(vmConfig.get("port").textValue()); // need to correspond to the JVM address
 
 		// Connect to the JVM
 		try {
