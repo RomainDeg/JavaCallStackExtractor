@@ -24,6 +24,9 @@
 }
 ```
 
+## You want to have multiples configs ?
+By default, JDIAttach will search for a file named "config.json", but you can give the name of your config file as an argument to JDIAttach
+
 ## Breakdown of every variable
 
 ### vm
