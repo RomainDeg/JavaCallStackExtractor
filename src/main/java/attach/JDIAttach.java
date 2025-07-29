@@ -29,6 +29,7 @@ public class JDIAttach {
 	public static StackExtractor extractor;
 
 	public static void main(String[] args) throws Exception {
+		// TODO Move the responsibilities of JDIAttach to another object to clarify the main
 		// TODO Maybe try to not attach to a vm but instatiate it ourselves
 		// reading the config file
 		String configFileName;
