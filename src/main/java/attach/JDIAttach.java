@@ -2,14 +2,20 @@ package attach;
 
 import com.sun.jdi.*;
 import com.sun.jdi.connect.*;
+import com.sun.jdi.event.BreakpointEvent;
+import com.sun.jdi.event.Event;
+import com.sun.jdi.event.EventSet;
+import com.sun.jdi.event.VMDeathEvent;
+import com.sun.jdi.event.VMDisconnectEvent;
+
+import breakpoint.BreakPointInstaller;
+import breakpoint.BreakpointWrapper;
 import extractors.StackExtractor;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -19,35 +25,34 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class JDIAttach {
 
 	public static JsonNode config;
-	
+
 	public static StackExtractor extractor;
 
 	public static void main(String[] args) throws Exception {
 		// TODO Maybe try to not attach to a vm but instatiate it ourselves
-		// TODO Add a number of stop before activating the breakpoint in the config, so that if you wan't to stop on the third call, you can
 		// reading the config file
-		String fileName;
-		if(args.length == 0) {
-			fileName = "config.json";
+		String configFileName;
+		if (args.length == 0) {
+			configFileName = "config.json";
 		} else {
-			fileName = args[0];
+			configFileName = args[0];
 		}
 		try {
 			ObjectMapper mapper = new ObjectMapper();
-			config = mapper.readTree(new File(fileName));
+			config = mapper.readTree(new File(configFileName));
 
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
+
 		// StackExtractor informations setting
-		extractor = new StackExtractor(config.get("logging"),config.get("maxDepth").intValue());
+		extractor = new StackExtractor(config.get("logging"), config.get("maxDepth").intValue());
 
 		// getting the VM
 		VirtualMachine vm = attachToJVM();
 
 		// Adding the breakpoint
-		BreakPointInstaller.addBreakpoint(vm, config.get("breakpoint"));
+		BreakpointWrapper bkWrap = BreakPointInstaller.addBreakpoint(vm, config.get("breakpoint"));
 
 		// Searching for the wanted thread
 		ThreadReference thread = getThread(vm);
@@ -56,7 +61,7 @@ public class JDIAttach {
 		thread.resume();
 
 		// waiting for the thread to either finish or stop at a breakpoint
-		waitForBreakpoint(thread);
+		waitForBreakpoint(vm, bkWrap);
 
 		// Start the extraction
 		extractCallStack(thread);
@@ -105,33 +110,44 @@ public class JDIAttach {
 	}
 
 	/**
-	 * Waiting for the thread to stop at a break point
-	 * 
-	 * @param thread the thread that should stop at a breakpoint
-	 * @throws IllegalStateException if the thread has terminated instead of stopped at a break point
+	 * Waiting for the vm to stop at a break point
+	 * @param vm the VirtualMachine observed
+	 * @param bkWrap the wrapper for the breakpoint searched
+	 * @throws InterruptedException
+	 * @throws IOException
 	 */
-	private static void waitForBreakpoint(ThreadReference thread) {
-		while (!(thread.status() == ThreadReference.THREAD_STATUS_ZOMBIE || thread.isAtBreakpoint())) {
-			try {
-				TimeUnit.MILLISECONDS.sleep(5);
-			} catch (InterruptedException e) {
-				// No need to take note of this exception
-			}
-		}
+	private static void waitForBreakpoint(VirtualMachine vm, BreakpointWrapper bkWrap) throws InterruptedException, IOException {
 
-		if (thread.status() == ThreadReference.THREAD_STATUS_ZOMBIE) {
-			throw new IllegalStateException("Thread has not encounter a breakpoint");
+		EventSet eventSet = null;
+		boolean stop = false;
+
+		while ((!stop && (eventSet = vm.eventQueue().remove()) != null)) {
+			for (Event event : eventSet) {
+				if (event instanceof VMDeathEvent) {
+					throw new IllegalStateException("Thread has terminated without encountering the wanted breakpoint");
+				} else if (event instanceof VMDisconnectEvent) {
+					throw new IllegalStateException("VM has been disconected");
+				} else if (event instanceof BreakpointEvent) {
+					// BreakPoint attained we can stop here
+					// TODO make this able to stop on a count or on  
+					stop = event.request().equals(bkWrap.getBreakpointRequest());
+					break;
+				} else {
+					// Not noticeable now
+					// TODO by looking at the type hierarchy of Event it will be possible to take steps into accounts
+				}
+			}
 		}
 	}
 
 	/**
 	 * Returns the thread with the chosen name if one exist in the given VM
 	 * 
-	 * @param vm         the virtual machine where the thread is supposed to be
+	 * @param vm the virtual machine where the thread is supposed to be
 	 * @return the thread with the chosen name if one exist in the given VM
 	 * @throws IllegalStateException if no thread can be found
 	 */
-	private static ThreadReference getThread( VirtualMachine vm) {
+	private static ThreadReference getThread(VirtualMachine vm) {
 		ThreadReference main = null;
 		for (ThreadReference thread : vm.allThreads()) {
 			if (thread.name().equals(config.get("sourceMethod").textValue())) {
@@ -155,7 +171,7 @@ public class JDIAttach {
 	public static VirtualMachine attachToJVM() throws IllegalConnectorArgumentsException, IOException {
 		// Getting the configs for the vm
 		JsonNode vmConfig = config.get("vm");
-		
+
 		VirtualMachineManager vmm = Bootstrap.virtualMachineManager();
 		AttachingConnector connector = null;
 

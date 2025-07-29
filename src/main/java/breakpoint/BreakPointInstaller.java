@@ -1,4 +1,4 @@
-package attach;
+package breakpoint;
 
 import java.util.List;
 
@@ -26,7 +26,9 @@ public class BreakPointInstaller {
 	 * @param methodInfos information on the method at which the breakpoint is installed
 	 * @throws ClassNotLoadedException if no method matches the characteristics
 	 */
-	public static void addBreakpoint(VirtualMachine vm, JsonNode methodInfos) throws ClassNotLoadedException {
+	public static BreakpointWrapper addBreakpoint(VirtualMachine vm, JsonNode methodInfos) throws ClassNotLoadedException {
+		int repBefore = methodInfos.get("repBefore").intValue();
+		int repetition = methodInfos.get("repetition").intValue();
 		// Getting the EventRequestManager of the VirtualMachine
 		EventRequestManager requestManager = vm.eventRequestManager();
 
@@ -39,9 +41,10 @@ public class BreakPointInstaller {
 		// Creating the breakpoint at the wanted location
 		BreakpointRequest breakpointRequest = requestManager.createBreakpointRequest(location);
 
-		breakpointRequest.addCountFilter(1);
+		breakpointRequest.addCountFilter(repBefore + repetition);
 		breakpointRequest.enable(); // activate the breakpoint
-
+		
+		return new BreakpointWrapper(breakpointRequest, repBefore, repetition);
 	}
 
 	/**

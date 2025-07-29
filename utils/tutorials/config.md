@@ -2,30 +2,32 @@
 
 ```json
 {
-	"vm": {
-		"host": "localhost",
-		"port": "5006"
-	},
-	"breakpoint": {
-		"className": "java.lang.Runtime",
-		"methodName": "exec",
-		"methodArguments": [
-			"java.lang.String"
-		]
-	},
-	"sourceMethod": "main",
-	"maxDepth" : 20,
-	"logging": {
-		"format"  : "json",
-		"outputName" : "JDIOutput",
-		"extension": "cs"
-		
-	}
+  "vm": {
+    "host": "localhost",
+    "port": "5006"
+  },
+  "breakpoint": {
+    "className": "java.lang.Runtime",
+    "methodName": "exec",
+    "methodArguments": [
+      "java.lang.String"
+    ],
+    "repBefore": 0,
+    "repetition": 1
+  },
+  "sourceMethod": "main",
+  "maxDepth" : 20,
+  "logging": {
+    "format"  : "json",
+    "outputName" : "JDIOutput",
+    "extension": "cs"
+
+  }
 }
 ```
 
-## You want to have multiples configs ?
-By default, JDIAttach will search for a file named "config.json", but you can give the name of your config file as an argument to JDIAttach
+## Do you want to have multiple configs?
+By default, JDIAttach will search for a file named "config.json",  but you can give the name of your config file in the program arguments of JDIAttach (for instance, in the 'Run configurations' of the Eclipse IDE).
 
 ## Breakdown of every variable
 
@@ -39,6 +41,9 @@ This variable describes the method you want your callstack to stop on.
 - className :  the name of the class where the method is situated
 - methodName : the name of the method
 - methodArguments : name of all arguments type of the method in the declaration order
+#### <b>!not implemented yet</b>
+- repBefore : the number of time you want to ignore the breakpoint before actually stopping 
+- repetition <b>!not implemented yet</b>: the number of time you want to stop on the breakpoint 
 
 ### sourceMethod
 This variable correspond to the name of the method starting the thread (generally it will be the main)
