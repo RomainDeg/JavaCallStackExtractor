@@ -11,8 +11,8 @@ import com.sun.jdi.StringReference;
 
 public class LoggerJson extends AbstractLoggerFormat {
 
-	public LoggerJson(String outputName) {
-		super(outputName, "cs");
+	public LoggerJson(String outputName, String Extension) {
+		super(outputName, Extension);
 	}
 
 	@Override
@@ -251,11 +251,11 @@ public class LoggerJson extends AbstractLoggerFormat {
 		this.objectEnd();
 	}
 
-	public void arrayStart() {
+	private void arrayStart() {
 		write("[");
 	}
 
-	public void arrayEnd() {
+	private void arrayEnd() {
 		write("]");
 	}
 

@@ -9,8 +9,8 @@ public class LoggerText extends AbstractLoggerFormat {
 
 	private static String indent = "  ";
 
-	public LoggerText(String outputName) {
-		super(outputName, "txt");
+	public LoggerText(String outputName, String Extension) {
+		super(outputName, Extension);
 	}
 
 	private void addIndent(int depth) {
@@ -157,18 +157,6 @@ public class LoggerText extends AbstractLoggerFormat {
 	@Override
 	public void joinElementListing() {
 		// Nothing
-	}
-
-	@Override
-	public void arrayStart() {
-		// Nothing
-
-	}
-
-	@Override
-	public void arrayEnd() {
-		// Nothing
-
 	}
 
 	@Override

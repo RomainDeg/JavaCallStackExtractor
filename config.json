@@ -1,0 +1,23 @@
+{
+	"vm": {
+		"host": "localhost",
+		"port": "5006"
+	},
+	"breakpoint": {
+		"className": "java.lang.Runtime",
+		"methodName": "exec",
+		"methodArguments": [
+			"java.lang.String"
+		],
+		"repBefore": 0,
+		"repetition": 1
+	},
+	"sourceMethod": "main",
+	"maxDepth" : 20,
+	"logging": {
+		"format"  : "json",
+		"outputName" : "JDIOutput",
+		"extension": "cs"
+		
+	}
+}

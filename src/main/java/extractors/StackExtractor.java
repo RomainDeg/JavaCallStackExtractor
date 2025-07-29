@@ -1,10 +1,15 @@
 package extractors;
 
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.BiFunction;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.sun.jdi.ArrayReference;
 import com.sun.jdi.ClassObjectReference;
 import com.sun.jdi.Field;
@@ -18,6 +23,7 @@ import com.sun.jdi.Value;
 import com.sun.jdi.VoidValue;
 
 import logging.ILoggerFormat;
+import logging.LoggerJson;
 import logging.LoggerText;
 
 import com.sun.jdi.ReferenceType;
@@ -27,32 +33,75 @@ import com.sun.jdi.ReferenceType;
  */
 public class StackExtractor {
 
+	public static Map<String, BiFunction<String, String, ILoggerFormat>> loggerChoice = registerAllLoggers();
+
 	/**
-	 * The logger used to collect extracted informations Default value is LoggerPrintTxt with an output named "output.txt"
+	 * The logger used to collect extracted informations
 	 */
-	public static ILoggerFormat logger = new LoggerText("output");
+	private ILoggerFormat logger;
 
 	/**
 	 * represent the maximum recursion algorithm to study object's fields and array's value can make
 	 */
-	public static int maxDepth;
+	private int maxDepth;
 
 	/**
 	 * Used to indicates which Object has already been visited, to not visit again.
 	 */
-	private static Set<ObjectReference> visited = new HashSet<>();
+	private Set<ObjectReference> visited = new HashSet<>();
 
-	public static void setLogger(ILoggerFormat log) {
-		logger = log;
+	/**
+	 * Constructor of StackExtractor
+	 * 
+	 * @param loggerInfos informations to instantiate the logger
+	 */
+	public StackExtractor(JsonNode loggerInfos, int depth) {
+		 if (loggerInfos == null || !loggerInfos.has("format") || !loggerInfos.has("outputName") || !loggerInfos.has("extension")) {
+		        throw new IllegalArgumentException("Missing required fields in loggerInfos: 'format', 'outputName', or 'extension'");
+		    }
+		
+		// logger creation
+		String format = loggerInfos.get("format").textValue();
+		String outputName = loggerInfos.get("outputName").textValue();
+		String extension = loggerInfos.get("extension").textValue();
+		
+		if (!loggerChoice.containsKey(format)) {
+	        throw new IllegalArgumentException("Logger format not recognized: " + format);
+	    }
+
+		logger = loggerChoice.get(format).apply(outputName, extension);
+		
+		// max depth setting
+		maxDepth = depth;
+	}
+	
+	public static Map<String, BiFunction<String, String, ILoggerFormat>> registerAllLoggers() {
+		Map<String, BiFunction<String, String, ILoggerFormat>> res = new HashMap<>();
+		// json format
+		res.put("json", (name, extension) -> new LoggerJson(name, extension));
+		// txt format
+		res.put("txt", (name, extension) -> new LoggerText(name, extension));
+		return res;
 	}
 
 	/**
-	 * Set the max depth recursion for the algorithm to study object's fields and array's value can make
+	 * Returns the used logger
 	 * 
-	 * @param depth the new max depth
+	 * @return the used logger
 	 */
-	public static void setMaxDepth(int depth) {
-		maxDepth = depth;
+	public ILoggerFormat getLogger() {
+		return logger;
+	}
+
+	/**
+	 * Properly close the logger
+	 */
+	public void closeLogger() {
+		try {
+			logger.closeWriter();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -60,7 +109,7 @@ public class StackExtractor {
 	 * 
 	 * @param frame the frame to extract
 	 */
-	public static void extract(StackFrame frame) {
+	public void extract(StackFrame frame) {
 		extractMethod(frame);
 		extractArguments(frame);
 		extractReceiver(frame);
@@ -71,7 +120,7 @@ public class StackExtractor {
 	 * 
 	 * @param frame the frame to extract
 	 */
-	public static void extractMethod(StackFrame frame) {
+	public void extractMethod(StackFrame frame) {
 		Method method = frame.location().method();
 		logger.methodSignature(method);
 	}
@@ -81,7 +130,7 @@ public class StackExtractor {
 	 * 
 	 * @param frame the frame to extract
 	 */
-	public static void extractArguments(StackFrame frame) {
+	public void extractArguments(StackFrame frame) {
 		logger.methodArgumentStart();
 
 		// arguments can sometimes not be accessible, if that's the case, stop here
@@ -111,7 +160,7 @@ public class StackExtractor {
 	 * 
 	 * @param argumentsValueIterator the iterator on the arguments
 	 */
-	private static void extractAnArgument(Iterator<Value> argumentsValueIterator) {
+	private void extractAnArgument(Iterator<Value> argumentsValueIterator) {
 		// Here we suppose that method.argumentTypeNames() and frame.getArgumentValues() have the same numbers of items
 		// With this supposition being always true, we can just check if one have next and iterate in both
 		extractValueRecursive(argumentsValueIterator.next(), 0);
@@ -122,7 +171,7 @@ public class StackExtractor {
 	 * 
 	 * @param frame the frame to extract
 	 */
-	public static void extractReceiver(StackFrame frame) {
+	public void extractReceiver(StackFrame frame) {
 		logger.methodReceiverStart();
 		extractValueRecursive(frame.thisObject(), 0);
 		logger.methodReceiverEnd();
@@ -133,7 +182,7 @@ public class StackExtractor {
 	 * 
 	 * @param value the value to extract
 	 */
-	private static void extractValueRecursive(Value value, int depth) {
+	private void extractValueRecursive(Value value, int depth) {
 		if (maxDepth != 0 & depth > maxDepth) {
 			logger.maxDepth(depth);
 		} else if (value == null) {
@@ -158,7 +207,7 @@ public class StackExtractor {
 	 * 
 	 * @param value the primitiveValue to extract
 	 */
-	private static void extractPrimitiveValue(PrimitiveValue value, int depth) {
+	private void extractPrimitiveValue(PrimitiveValue value, int depth) {
 		logger.primitiveValue(value, depth);
 	}
 
@@ -167,7 +216,7 @@ public class StackExtractor {
 	 * 
 	 * @param value the ObjectReference to extract
 	 */
-	private static void extractObjectReference(ObjectReference value, int depth) {
+	private void extractObjectReference(ObjectReference value, int depth) {
 		logger.objectReferenceStart(value, depth);
 
 		if (visited.contains(value)) {
@@ -217,7 +266,7 @@ public class StackExtractor {
 	 * @param arrayValues the values of the array
 	 * @param index       the index of the value to extract
 	 */
-	private static void extractArrayValue(int depth, List<Value> arrayValues, int index) {
+	private void extractArrayValue(int depth, List<Value> arrayValues, int index) {
 		logger.arrayValueStart(index, depth);
 		extractValueRecursive(arrayValues.get(index), depth + 1);
 		logger.arrayValueEnd();
@@ -229,7 +278,7 @@ public class StackExtractor {
 	 * @param ref  the ObjectReference having the fields to extract
 	 * @param type the reference type of the ObjectReference
 	 */
-	private static void extractAllFields(ObjectReference ref, ReferenceType type, int depth) {
+	private void extractAllFields(ObjectReference ref, ReferenceType type, int depth) {
 		logger.fieldsStart();
 
 		// Check if the class is prepared, if not trying to get any field will throw an exception
@@ -264,7 +313,7 @@ public class StackExtractor {
 	 * @param depth the depth of the current recursion
 	 * @param field the field to extract
 	 */
-	private static void extractField(ObjectReference ref, int depth, Field field) {
+	private void extractField(ObjectReference ref, int depth, Field field) {
 		try {
 			// TODO
 			// We actually extract the static and final fields, should we?
