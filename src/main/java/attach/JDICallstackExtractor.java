@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * Attach to a java virtual machine to extract the call stack to a text file
  */
-public class JDIAttach {
+public class JDICallstackExtractor {
 
 	public static JsonNode config;
 
@@ -45,6 +45,7 @@ public class JDIAttach {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		
 
 		// StackExtractor informations setting
 		extractor = new StackExtractor(config.get("logging"), config.get("maxDepth").intValue());

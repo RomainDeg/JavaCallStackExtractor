@@ -22,7 +22,7 @@ This command enables debug mode on the Java VM:
 - suspend=y: Indicates that the JVM is waiting for a debugger to connect before starting execution
 - address=5006: Indicates the port on which the JVM will wait for a connection
 
-#### 2) Modify the config.json to make JDI attach works on your project
+#### 2) Modify the config.json to make the JDICallstackExtractor works on your project
 Check [config.md](utils/tutorials/config.md) for more details
 
-#### 3) Launch the main of JDIAttach, and the output will appear in the root of this git project
+#### 3) Launch the main of JDICallstackExtractor, and the output will appear in the root of this git project
