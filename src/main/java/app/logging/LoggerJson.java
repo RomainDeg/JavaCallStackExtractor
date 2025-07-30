@@ -1,4 +1,4 @@
-package logging;
+package app.logging;
 
 import java.util.Iterator;
 

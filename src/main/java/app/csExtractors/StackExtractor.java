@@ -1,4 +1,4 @@
-package extractors;
+package app.csExtractors;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -22,9 +22,9 @@ import com.sun.jdi.StringReference;
 import com.sun.jdi.Value;
 import com.sun.jdi.VoidValue;
 
-import logging.ILoggerFormat;
-import logging.LoggerJson;
-import logging.LoggerText;
+import app.logging.ILoggerFormat;
+import app.logging.LoggerJson;
+import app.logging.LoggerText;
 
 import com.sun.jdi.ReferenceType;
 
