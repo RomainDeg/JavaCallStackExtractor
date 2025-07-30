@@ -1,6 +1,7 @@
 # JavaCallStackExtractor  :
 
-This project offers the possibility to extract the maximum information available from a Java callstack in a text-based file.
+This project offers the possibility to extract the maximum information available from a Java callstack in a text-based file.  
+This project was created to provide a parser for java callstack, to allow analysis of theses in [Moose](https://moosetechnology.org/), by creating a meta-model for java callstacks. For More informations about this meta-model see [FamixCallStack](https://github.com/LeoDefossez/FamixCallStack).
 
 
 ##  How to use
