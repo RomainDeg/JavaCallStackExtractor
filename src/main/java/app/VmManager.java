@@ -15,7 +15,7 @@ import app.breakpoint.BreakpointWrapper;
 public class VmManager {
 
 	VirtualMachine vm;
-	
+
 	public VmManager(VirtualMachine vm) {
 		this.vm = vm;
 	}
@@ -23,12 +23,11 @@ public class VmManager {
 	public void resumeThread(String threadName) {
 		this.getThreadNamed(threadName).resume();
 	}
-	
 
 	/**
 	 * Returns the thread with the chosen name if one exist in the given VM
 	 * 
-	 * @param vm the virtual machine where the thread is supposed to be
+	 * @param threadName name of the searched thread
 	 * @return the thread with the chosen name if one exist in the given VM
 	 * @throws IllegalStateException if no thread can be found
 	 */
@@ -46,7 +45,6 @@ public class VmManager {
 		return main;
 	}
 
-	
 	/**
 	 * Waiting for the vm to stop at a break point
 	 * 
@@ -65,10 +63,8 @@ public class VmManager {
 					throw new IllegalStateException("Thread has terminated without encountering the wanted breakpoint");
 				} else if (event instanceof VMDisconnectEvent) {
 					throw new IllegalStateException("VM has been disconected");
-				} else if (event instanceof BreakpointEvent) {
+				} else if (event instanceof BreakpointEvent && (stop = bkWrap.shouldStopAt(event))) {
 					// BreakPoint attained we can stop here
-					// TODO make this able to stop on a count or on  
-					stop = event.request().equals(bkWrap.getBreakpointRequest());
 					break;
 				} else {
 					// Not noticeable now
@@ -77,7 +73,7 @@ public class VmManager {
 			}
 		}
 	}
-	
+
 	/**
 	 * Dispose of the VM to make sure the vm disconnect properly
 	 */
