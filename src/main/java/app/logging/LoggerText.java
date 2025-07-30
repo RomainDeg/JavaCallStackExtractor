@@ -1,4 +1,4 @@
-package logging;
+package app.logging;
 
 import com.sun.jdi.Method;
 import com.sun.jdi.ObjectReference;

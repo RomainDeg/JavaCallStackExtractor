@@ -1,4 +1,4 @@
-package breakpoint;
+package app.breakpoint;
 
 import com.sun.jdi.request.BreakpointRequest;
 
