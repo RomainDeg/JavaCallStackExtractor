@@ -41,9 +41,8 @@ This variable describes the method you want your callstack to stop on.
 - className :  the name of the class where the method is situated
 - methodName : the name of the method
 - methodArguments : name of all arguments type of the method in the declaration order
-#### <b>!not implemented yet</b>
 - repBefore : the number of time you want to ignore the breakpoint before actually stopping 
-- repetition <b>!not implemented yet</b>: the number of time you want to stop on the breakpoint 
+- repetition <b>!!not implemented yet!!</b>: the number of time you want to stop on the breakpoint 
 
 ### sourceMethod
 This variable correspond to the name of the method starting the thread (generally it will be the main)
