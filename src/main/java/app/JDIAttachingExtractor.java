@@ -38,12 +38,12 @@ public class JDIAttachingExtractor {
 		BreakpointWrapper bkWrap = BreakPointInstaller.addBreakpoint(vm, config.get("breakpoint"));
 
 		// resuming the process of the the thread
-		vmManager.resumeThread(config.get("sourceMethod").textValue());
+		vmManager.resumeThread(config.get("entryMethod").textValue());
 		
 		vmManager.waitForBreakpoint(bkWrap);
 		
 		CallstackExtractor csExtractor = new CallstackExtractor(config.get("logging"), config.get("maxDepth").intValue());
-		csExtractor.extractCallStack(vmManager.getThreadNamed(config.get("sourceMethod").textValue()));
+		csExtractor.extractCallStack(vmManager.getThreadNamed(config.get("entryMethod").textValue()));
 
 		// properly disconnecting
 		vmManager.disposeVM();

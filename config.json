@@ -12,7 +12,7 @@
 		"repBefore": 0,
 		"repetition": 1
 	},
-	"sourceMethod": "main",
+	"entryMethod": "main",
 	"maxDepth" : 20,
 	"logging": {
 		"format"  : "json",
