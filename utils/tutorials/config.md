@@ -1,4 +1,4 @@
-## Here is the default config.json
+## Default config.json example
 
 ```json
 {
@@ -26,33 +26,55 @@
 }
 ```
 
-## Do you want to have multiple configs?
-By default, JDIAttach will search for a file named "config.json",  but you can give the name of your config file in the program arguments of JDIAttach (for instance, in the 'Run configurations' of the Eclipse IDE).
+## Using multiple configurations
+By default, JavaCallstackExtractor looks for a file named config.json.
+However, you can specify a custom configuration file by passing its name as a program argument to JavaCallstackExtractor (e.g., via Run Configurations in Eclipse).
 
-## Breakdown of every variable
+
+## Configuration Explained
 
 ### vm
-This variable holds informations about the vm you will attach to
-- host : Name of the host (if done locally it will stay at "localhost")
-- port : address of the VM (if using the given argument in the part 1, will stay on "5006")
+Defines the target Java Virtual Machine to attach to.
+- host : The hostname of the target VM (typically "localhost" for local debugging)
+- port : The port exposed by the target VM (should match the port in the JDWP setup, default is "5006")
 
 ### breakpoint
-This variable describes the method you want your callstack to stop on.
-- className :  the name of the class where the method is situated
-- methodName : the name of the method
-- methodArguments : name of all arguments type of the method in the declaration order
-- repBefore : the number of time you want to ignore the breakpoint before actually stopping 
-- repetition <b>!!not implemented yet!!</b>: the number of time you want to stop on the breakpoint 
+Specifies where the call stack extraction should be triggered.
+- className :  Fully qualified name of the class containing the target method
+- methodName : Name of the method where the breakpoint will be set
+- methodArguments : A list of parameter types (in order) as fully qualified class names
+- repBefore : Number of times to skip the breakpoint before triggering
+- repetition ``` !!not implemented yet!!```: the number of time you want to stop on the breakpoint 
 
 ### sourceMethod
-This variable correspond to the name of the method starting the thread (generally it will be the main)
+Specifies the name of the entry method for the thread.
+Typically, this will be "main".
+
+**Example :**  
+Let’s say your main() method launches the epic journey of a brave hero. But—before launching it—you get jealous and decide that your hero should never get any rest...
+
+<img src="/utils/image/callstack_example.png" alt="callstack example" width="50%">
+
+In this case:
+- The **entry method** is: main(String[] args), note that only the name of the method is actually important
+- The **breakpoint** is: method rest() in the class Hero
+```json
+"sourceMethod": "main",
+"breakpoint": {
+  "className": "your.package.Hero",
+  "methodName": "rest",
+  "methodArguments": []
+}
+```
 
 ### maxDepth
-This variable define the maximum depth recursion of the instance logging, set 0 for max depth
-
+Sets the maximum recursion depth for call stack logging.
+Use 0 for unlimited depth.
 
 ### logging
-This variable holds information for the logging format and wanted output.
-- format : the logging format, can be either txt or json (Other can be easily added see [addLoggerFormat.md](addLoggerFormat.md))
-- outputName : name of the output file
-- extension : extension of the output file, default at "cs", this extension is important for an easier importation of the callstack in Moose (See [FamixCallStack](https://github.com/LeoDefossez/FamixCallStack#))
+Controls how the output is formatted and where it is saved.
+- format : Output format – currently supports "txt" or "json"  
+  (You can easily add new formats – see [addLoggerFormat.md](addLoggerFormat.md))
+- outputName : Base name of the output file
+- extension : File extension (default is "cs").  
+  This is important for compatibility with import tools like [FamixCallStack](https://github.com/LeoDefossez/FamixCallStack#)

@@ -1,29 +1,38 @@
 # JavaCallStackExtractor  :
 
-This project offers the possibility to extract the maximum information available from a Java callstack in a text-based file.  
-This project was created to provide a parser for java callstack, to allow analysis of theses in [Moose](https://moosetechnology.org/), by creating a meta-model for java callstacks. For More informations about this meta-model see [FamixCallStack](https://github.com/LeoDefossez/FamixCallStack).
+JavaCallStackExtractor is a tool designed to extract as much information as possible from a Java call stack stored in a text-based file.  
+It was created to provide a parser for Java call stacks, enabling their analysis within the [Moose](https://moosetechnology.org/) software analysis platform by generating a dedicated meta-model.   
+For More information about this meta-model see the [FamixCallStack](https://github.com/LeoDefossez/FamixCallStack) project.
 
 
 ##  How to use
 
-At the time being you need to use a version of java between java 9 and 21 (a newer version might work but no testing has been done).
-Try synchronizing the java version used on the program to analyze and this program 
-(Having different versions might work, but unsynchronized versions could maybe create unexpected behaviors)
+This tool requires Java version 9 to 21.  
+Newer versions might work, but have not been tested.  
+It is highly recommended to use the **same Java version** for both the program you want to analyze and the extractor.  
+Using different versions may lead to unexpected behavior.  
 
-#### 1) Launch the program you want to analyze with this argument on the VM :  
--agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5006  
+### Step 1: Run the Target Program in Debug Mode 
+Launch the program you want to analyze with the following VM argument:
+```
+-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5006 
+``` 
 
-As a reference here is how you add it in a run configuration on eclipse :  
+
+In Eclipse, you can add this argument in the *Run Configuration > VM Arguments* section: 
 	<img src="utils/image/run-Config-VMargs.png" width="460" height="331">  
 
 This command enables debug mode on the Java VM:  
 - jdwp: Java Debug Wire Protocol
-- transport=dt_socket: Indicates that communication is over a network (which allows for operating system independence)
-- server=y: Indicates that the JVM is acting as a debug server, y means yes: the JVM is waiting for a debugger to connect
-- suspend=y: Indicates that the JVM is waiting for a debugger to connect before starting execution
-- address=5006: Indicates the port on which the JVM will wait for a connection
+- transport=dt_socket: Enables socket-based communication
+- server=y: Starts the JVM in debug server mode (waits for a debugger)
+- suspend=y: JVM execution is paused until a debugger connects
+- address=5006: Port used to wait for debugger connection
 
-#### 2) Modify the config.json to make the JDICallstackExtractor works on your project
-Check [config.md](utils/tutorials/config.md) for more details
+### Step 2: Configure the Extractor
+Edit the config.json file to fit the structure of your project.
+Refer to  [config.md](utils/tutorials/config.md) for detailed instructions.
 
-#### 3) Launch the main of JDICallstackExtractor, and the output will appear in the root of this git project
+### Step 3: Run the Extractor
+Execute the main method of JDICallstackExtractor.
+The output will be generated in the root directory of this repository.

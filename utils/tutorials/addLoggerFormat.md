@@ -1,13 +1,14 @@
-## Adding a new logging format :
-The currents logging formats are :
-- txt, which is just for visual analysis
-- json, which is for importing useful for importing in other programs
+# Adding a new logging format 
+JavaCallStackExtractor currently supports the following logging formats:
+- txt – A simple, human-readable format for visual analysis.
+- json – A structured format suitable for integration with other tools.
 
-1. You want know what information can the logger use ?  
-See [ILoggerFormat](../../src/main/java/logging/ILoggerFormat.java)
+## Want to know what data is available to the logger?
+Check the interface [ILoggerFormat](../../src/main/java/app/logging/ILoggerFormat.java) to see which methods need to be implemented and what information the logger has access to.
 
-2. You want to write another logger ?
-As an exemple here how [LoggerJson](../../src/main/java/logging/LoggerJson.java) is added :
+## Want to create your own logger ?
+You can add a new logger by extending AbstractLoggerFormat.
+Here's a simplified example based on [LoggerJson](../../src/main/java/logging/LoggerJson.java) :
 ```java
 public class LoggerJson extends AbstractLoggerFormat {
 
@@ -15,13 +16,18 @@ public class LoggerJson extends AbstractLoggerFormat {
         super(outputName, Extension);
     }
     
-    ....
-    
+    // Implement required methods from ILoggerFormat here
 }
 ```
 
-The only thing needed to be done is offering an implementation for every method of ILoggerFormat.
+To create your custom logger, simply provide concrete implementations for all methods defined in the ILoggerFormat interface.
 
-3. You have you new logger, and you want to make it work on the application ?
-Go to [StackExtractor](../../src/main/java/extractors/StackExtractor.java) and modify the method registerAllLoggers() to add :  
-res.put("<b>your keyword</b>", (name, extension) -> new <b>YourLogger</b>(name, extension));
+## How to enable your logger in the application?
+To make your custom logger available at runtime: 
+1. Open [StackExtractor](../../src/main/java/extractors/StackExtractor.java)
+2. Locate the method registerAllLoggers().
+3. Add a new entry to the res map using the following format:
+```declarative
+    res.put("yourKeyword", (name, extension) -> new YourLogger(name, extension));
+```
+Replace yourKeyword with the identifier you want to use (e.g., "xml", "csv"), and YourLogger with the name of your custom logger class.
