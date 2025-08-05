@@ -55,7 +55,6 @@ public class LoggerJson extends AbstractLoggerFormat {
 		// writing class side information
 		write(quotes("static") + ":" + quotes(method.isStatic()));
 		this.joinElementListing();
-		this.joinElementListing();
 		// writing all arguments types
 		write(quotes("parameters") + ":");
 		// open array
