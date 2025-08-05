@@ -1,4 +1,4 @@
-# JavaCallStackExtractor  :
+# JavaCallStackExtractor 
 
 JavaCallStackExtractor is a tool designed to extract as much information as possible from a Java call stack stored in a text-based file.  
 It was created to provide a parser for Java call stacks, enabling their analysis within the [Moose](https://moosetechnology.org/) software analysis platform by generating a dedicated meta-model.   
