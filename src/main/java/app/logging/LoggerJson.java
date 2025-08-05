@@ -52,6 +52,10 @@ public class LoggerJson extends AbstractLoggerFormat {
 		// writing the name
 		write(quotes("name") + ":" + quotes(method.name()));
 		this.joinElementListing();
+		// writing class side information
+		write(quotes("static") + ":" + quotes(method.isStatic()));
+		this.joinElementListing();
+		this.joinElementListing();
 		// writing all arguments types
 		write(quotes("parameters") + ":");
 		// open array
@@ -67,6 +71,7 @@ public class LoggerJson extends AbstractLoggerFormat {
 		this.objectEnd();
 		this.joinElementListing();
 	}
+
 
 	@Override
 	public void methodArgumentStart() {
@@ -168,7 +173,7 @@ public class LoggerJson extends AbstractLoggerFormat {
 
 		this.joinElementListing();
 
-		write(quotes("value") + ":" + quotes(value.toString()));
+		write(quotes("value") + ":" + quotes(value));
 
 		// close object for the description of the type
 		this.objectEnd();
@@ -313,8 +318,8 @@ public class LoggerJson extends AbstractLoggerFormat {
 		this.objectEnd();
 	}
 
-	private String quotes(String str) {
-		return "\"" + str + "\"";
+	private String quotes(Object obj) {
+		return "\"" + obj.toString() + "\"";
 	}
 
 	private void objectStart() {
