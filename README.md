@@ -1,4 +1,4 @@
-# JavaCallStackExtractor  :
+# JavaCallStackExtractor 
 
 JavaCallStackExtractor is a tool designed to extract as much information as possible from a Java call stack stored in a text-based file.  
 It was created to provide a parser for Java call stacks, enabling their analysis within the [Moose](https://moosetechnology.org/) software analysis platform by generating a dedicated meta-model.   
@@ -9,7 +9,7 @@ For More information about this meta-model see the [FamixCallStack](https://gith
 
 This tool requires Java version 9 to 21.  
 Newer versions might work, but have not been tested.  
-It is highly recommended to use the **same Java version** for both the program you want to analyze and the extractor.  
+It is highly recommended to use the **same Java version** for both the program you want to analyze and the extractor (for example, if your application is executed in Java 9, the extractor should be cexecuted on Java 9).  
 Using different versions may lead to unexpected behavior.  
 
 ### Step 1: Run the Target Program in Debug Mode 
