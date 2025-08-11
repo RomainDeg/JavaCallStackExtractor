@@ -8,7 +8,6 @@ import com.sun.jdi.ClassType;
 import com.sun.jdi.Location;
 import com.sun.jdi.Method;
 import com.sun.jdi.ReferenceType;
-import com.sun.jdi.Type;
 import com.sun.jdi.VirtualMachine;
 import com.sun.jdi.request.BreakpointRequest;
 import com.sun.jdi.request.EventRequestManager;
@@ -44,7 +43,7 @@ public class BreakPointInstaller {
 		breakpointRequest.addCountFilter(repBefore + repetition);
 		breakpointRequest.enable(); // activate the breakpoint
 		
-		return new BreakpointWrapper(breakpointRequest, repBefore, repetition);
+		return new BreakpointWrapper(breakpointRequest, repBefore);
 	}
 
 	/**
@@ -56,7 +55,6 @@ public class BreakPointInstaller {
 	 */
 	private static Method findMethod(VirtualMachine vm, JsonNode methodInfos) {
 		// finding the class
-		// TODO can only find classes in the JDK ?
 		List<ReferenceType> classes = vm.classesByName(methodInfos.get("className").textValue());
 		if (classes.isEmpty()) {
 			throw new IllegalArgumentException("Class not found : " + methodInfos.get("className"));

@@ -9,8 +9,7 @@
 		"methodArguments": [
 			"java.lang.String"
 		],
-		"repBefore": 0,
-		"repetition": 1
+		"repBefore": 0
 	},
 	"entryMethod": "main",
 	"maxDepth" : 20,

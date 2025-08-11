@@ -12,8 +12,7 @@
     "methodArguments": [
       "java.lang.String"
     ],
-    "repBefore": 0,
-    "repetition": 1
+    "repBefore": 0
   },
   "sourceMethod": "main",
   "maxDepth" : 20,
@@ -44,7 +43,6 @@ Specifies where the call stack extraction should be triggered.
 - methodName : Name of the method where the breakpoint will be set
 - methodArguments : A list of parameter types (in order) as fully qualified class names
 - repBefore : Number of times to skip the breakpoint before triggering
-- repetition ``` !!not implemented yet!!```: the number of time you want to stop on the breakpoint 
 
 ### sourceMethod
 Specifies the name of the entry method for the thread.
