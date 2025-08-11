@@ -13,10 +13,6 @@ public class BreakpointWrapper {
 		this.repBefore = repBefore;
 	}
 
-	public Object getBreakpointRequest() {
-		return breakpointRequest;
-	}
-
 	/**
 	 * Returns true iff this event should be resolved as a breakpoint
 	 * @param event the event that could be resolved as a breakpoint

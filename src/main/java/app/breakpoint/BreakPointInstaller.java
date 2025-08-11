@@ -3,7 +3,6 @@ package app.breakpoint;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.sun.jdi.ClassNotLoadedException;
 import com.sun.jdi.ClassType;
 import com.sun.jdi.Location;
 import com.sun.jdi.Method;
@@ -23,11 +22,9 @@ public class BreakPointInstaller {
 	 * 
 	 * @param vm              the VM
 	 * @param methodInfos information on the method at which the breakpoint is installed
-	 * @throws ClassNotLoadedException if no method matches the characteristics
 	 */
-	public static BreakpointWrapper addBreakpoint(VirtualMachine vm, JsonNode methodInfos) throws ClassNotLoadedException {
+	public static BreakpointWrapper addBreakpoint(VirtualMachine vm, JsonNode methodInfos) {
 		int repBefore = methodInfos.get("repBefore").intValue();
-		int repetition = methodInfos.get("repetition").intValue();
 		// Getting the EventRequestManager of the VirtualMachine
 		EventRequestManager requestManager = vm.eventRequestManager();
 
@@ -40,7 +37,8 @@ public class BreakPointInstaller {
 		// Creating the breakpoint at the wanted location
 		BreakpointRequest breakpointRequest = requestManager.createBreakpointRequest(location);
 
-		breakpointRequest.addCountFilter(repBefore + repetition);
+		// the +1 make it stop after "repBefore" number of encounter
+		breakpointRequest.addCountFilter(1 + repBefore);
 		breakpointRequest.enable(); // activate the breakpoint
 		
 		return new BreakpointWrapper(breakpointRequest, repBefore);
