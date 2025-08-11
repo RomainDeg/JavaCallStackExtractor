@@ -56,25 +56,25 @@ public class StackExtractor {
 	 * @param loggerInfos informations to instantiate the logger
 	 */
 	public StackExtractor(JsonNode loggerInfos, int depth) {
-		 if (loggerInfos == null || !loggerInfos.has("format") || !loggerInfos.has("outputName") || !loggerInfos.has("extension")) {
-		        throw new IllegalArgumentException("Missing required fields in loggerInfos: 'format', 'outputName', or 'extension'");
-		    }
-		
+		if (loggerInfos == null || !loggerInfos.has("format") || !loggerInfos.has("outputName") || !loggerInfos.has("extension")) {
+			throw new IllegalArgumentException("Missing required fields in loggerInfos: 'format', 'outputName', or 'extension'");
+		}
+
 		// logger creation
 		String format = loggerInfos.get("format").textValue();
 		String outputName = loggerInfos.get("outputName").textValue();
 		String extension = loggerInfos.get("extension").textValue();
-		
+
 		if (!loggerChoice.containsKey(format)) {
-	        throw new IllegalArgumentException("Logger format not recognized: " + format);
-	    }
+			throw new IllegalArgumentException("Logger format not recognized: " + format);
+		}
 
 		logger = loggerChoice.get(format).apply(outputName, extension);
-		
+
 		// max depth setting
 		maxDepth = depth;
 	}
-	
+
 	public static Map<String, BiFunction<String, String, ILoggerFormat>> registerAllLoggers() {
 		Map<String, BiFunction<String, String, ILoggerFormat>> res = new HashMap<>();
 		// json format
@@ -279,16 +279,16 @@ public class StackExtractor {
 	 * @param type the reference type of the ObjectReference
 	 */
 	private void extractAllFields(ObjectReference ref, ReferenceType type, int depth) {
-		logger.fieldsStart();
-
 		// Check if the class is prepared, if not trying to get any field will throw an exception
 		// TODO maybe there is a way to force load the class, is that useful ? maybe the fact that it didn't load mean it's not useful
+
 		if (!type.isPrepared()) {
 			// Preparation involves creating the static fields for a class or interface and
 			// initializing such fields to their default values
 
 			logger.classNotPrepared(depth);
 		} else {
+			logger.fieldsStart();
 			Iterator<Field> iterator = type.allFields().iterator();
 			// doing the first iteration separately because the logging potentially need
 			// to know if we are at the first element or not to join with a special character
@@ -301,9 +301,9 @@ public class StackExtractor {
 				extractField(ref, depth, iterator.next());
 
 			}
+			logger.fieldsEnd();
 		}
 
-		logger.fieldsEnd();
 	}
 
 	/**
@@ -326,7 +326,7 @@ public class StackExtractor {
 			logger.fieldNameEnd();
 
 		} catch (IllegalArgumentException e) {
-			//TODO this is not an unaccessible field but an invalid field?
+			// TODO this is not an unaccessible field but an invalid field?
 			logger.inaccessibleField(depth);
 		}
 	}
