@@ -53,9 +53,8 @@ public class BreakPointInstaller {
 	 * @param vm              the Virtual Machine
 	 * @param methodInfos information on the method at which the breakpoint is installed
 	 * @return the method if one match
-	 * @throws ClassNotLoadedException if no method matches the characteristics
 	 */
-	private static Method findMethod(VirtualMachine vm, JsonNode methodInfos) throws ClassNotLoadedException {
+	private static Method findMethod(VirtualMachine vm, JsonNode methodInfos) {
 		// finding the class
 		// TODO can only find classes in the JDK ?
 		List<ReferenceType> classes = vm.classesByName(methodInfos.get("className").textValue());
@@ -74,15 +73,15 @@ public class BreakPointInstaller {
 
 		// if we have multiple methods and given arguments types, we search if one correspond
 		for (Method m : allMethods) {
-			List<Type> paramTypes = m.argumentTypes();
+			List<String> paramTypeNames = m.argumentTypeNames();
 			// if not the same number of types just pass this method
-			if (paramTypes.size() != methodInfos.get("methodArguments").size()) {
+			if (paramTypeNames.size() != methodInfos.get("methodArguments").size()) {
 				continue;
 			}
 			// starting on the hypothesis that we found the method, and trying to invalidate it
 			boolean matches = true;
-			for (int i = 0; i < paramTypes.size(); i++) {
-				if (!paramTypes.get(i).name().equals(methodInfos.get("methodArguments").get(i).textValue())) {
+			for (int i = 0; i < paramTypeNames.size(); i++) {
+				if (!paramTypeNames.get(i).equals(methodInfos.get("methodArguments").get(i).textValue())) {
 					matches = false;
 					break;
 				}
