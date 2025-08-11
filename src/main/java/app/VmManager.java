@@ -68,7 +68,7 @@ public class VmManager {
 					break;
 				} else {
 					// Not noticeable now
-					// TODO by looking at the type hierarchy of Event it will be possible to take steps into accounts
+					// TODO by looking at the type hierarchy of Event it could be possible to take steps into accounts
 				}
 			}
 		}

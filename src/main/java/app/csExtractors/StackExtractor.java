@@ -20,7 +20,6 @@ import com.sun.jdi.Method;
 import com.sun.jdi.StackFrame;
 import com.sun.jdi.StringReference;
 import com.sun.jdi.Value;
-import com.sun.jdi.VoidValue;
 
 import app.logging.ILoggerFormat;
 import app.logging.LoggerJson;
@@ -191,10 +190,6 @@ public class StackExtractor {
 			extractPrimitiveValue((PrimitiveValue) value, depth);
 		} else if (value instanceof ObjectReference) {
 			extractObjectReference((ObjectReference) value, depth);
-		} else if (value instanceof VoidValue) {
-			// TODO
-			// implements this if needed
-			throw new IllegalStateException("VoidValue encountered, extracting not yet implemented");
 		} else {
 			// in case there would be another type
 			throw new IllegalStateException("Unknown Value Type: " + value.type().name() + ", parsing not yet implemented for this type");
@@ -280,7 +275,7 @@ public class StackExtractor {
 	 */
 	private void extractAllFields(ObjectReference ref, ReferenceType type, int depth) {
 		// Check if the class is prepared, if not trying to get any field will throw an exception
-		// TODO maybe there is a way to force load the class, is that useful ? maybe the fact that it didn't load mean it's not useful
+		// If the class didn't load it mean it's not useful in the context of this call stack
 
 		if (!type.isPrepared()) {
 			// Preparation involves creating the static fields for a class or interface and
@@ -326,7 +321,6 @@ public class StackExtractor {
 			logger.fieldNameEnd();
 
 		} catch (IllegalArgumentException e) {
-			// TODO this is not an unaccessible field but an invalid field?
 			logger.inaccessibleField(depth);
 		}
 	}

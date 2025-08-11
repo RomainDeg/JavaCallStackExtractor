@@ -11,7 +11,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class JDICallstackExtractor {
 
 	public static void main(String[] args) throws Exception {
-		// TODO Maybe try to not attach to a vm but instatiate it ourselves
 		// reading the config file
 		String configFileName;
 		JsonNode config = null;
