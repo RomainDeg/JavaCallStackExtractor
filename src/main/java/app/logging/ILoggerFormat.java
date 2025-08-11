@@ -26,7 +26,9 @@ public interface ILoggerFormat {
 
 	void methodArgumentEnd();
 
-	void unaccessibleField(int depth);
+	void inaccessibleArgument(int depth);
+
+	void inaccessibleField(int depth);
 
 	void fieldsStart();
 

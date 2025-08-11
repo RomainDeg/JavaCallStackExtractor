@@ -91,10 +91,15 @@ public class LoggerJson extends AbstractLoggerFormat {
 
 		this.joinElementListing();
 	}
+	
+	@Override
+	public void inaccessibleArgument(int depth) {
+		write(quotes("<<INACCESSIBLE>>"));
+	}
 
 	@Override
-	public void unaccessibleField(int depth) {
-		write(quotes("<<UNACCESSIBLE>>"));
+	public void inaccessibleField(int depth) {
+		write(quotes("<<INACCESSIBLE>>"));
 	}
 
 	@Override

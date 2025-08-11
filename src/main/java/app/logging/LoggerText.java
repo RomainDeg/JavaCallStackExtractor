@@ -53,8 +53,15 @@ public class LoggerText extends AbstractLoggerFormat {
 
 	}
 
+
 	@Override
-	public void unaccessibleField(int depth) {
+	public void inaccessibleArgument(int depth) {
+		addIndent(depth);
+		writeln("[Not Accessible]");
+	}
+
+	@Override
+	public void inaccessibleField(int depth) {
 		addIndent(depth);
 		writeln("[Not Accessible]");
 	}

@@ -150,7 +150,7 @@ public class StackExtractor {
 			}
 		} catch (InternalException e) {
 			// Happens for native calls, and can't be obtained
-			logger.unaccessibleField(0);
+			logger.inaccessibleArgument(0);
 		}
 
 		logger.methodArgumentEnd();
@@ -326,7 +326,8 @@ public class StackExtractor {
 			logger.fieldNameEnd();
 
 		} catch (IllegalArgumentException e) {
-			logger.unaccessibleField(depth);
+			//TODO this is not an unaccessible field but an invalid field?
+			logger.inaccessibleField(depth);
 		}
 	}
 
