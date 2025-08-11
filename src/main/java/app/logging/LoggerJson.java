@@ -273,7 +273,7 @@ public class LoggerJson extends AbstractLoggerFormat {
 
 	private void parameters(Method method) {
 		try {
-			// trying to obtain the arguments informations
+			// trying to obtain the arguments information
 			Iterator<LocalVariable> ite = method.arguments().iterator();
 
 			if (ite.hasNext()) {

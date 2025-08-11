@@ -35,7 +35,7 @@ public class StackExtractor {
 	public static Map<String, BiFunction<String, String, ILoggerFormat>> loggerChoice = registerAllLoggers();
 
 	/**
-	 * The logger used to collect extracted informations
+	 * The logger used to collect extracted information
 	 */
 	private ILoggerFormat logger;
 
@@ -52,7 +52,7 @@ public class StackExtractor {
 	/**
 	 * Constructor of StackExtractor
 	 * 
-	 * @param loggerInfos informations to instantiate the logger
+	 * @param loggerInfos information to instantiate the logger
 	 */
 	public StackExtractor(JsonNode loggerInfos, int depth) {
 		if (loggerInfos == null || !loggerInfos.has("format") || !loggerInfos.has("outputName") || !loggerInfos.has("extension")) {
@@ -77,9 +77,9 @@ public class StackExtractor {
 	public static Map<String, BiFunction<String, String, ILoggerFormat>> registerAllLoggers() {
 		Map<String, BiFunction<String, String, ILoggerFormat>> res = new HashMap<>();
 		// json format
-		res.put("json", (name, extension) -> new LoggerJson(name, extension));
+		res.put("json", LoggerJson::new);
 		// txt format
-		res.put("txt", (name, extension) -> new LoggerText(name, extension));
+		res.put("txt", LoggerText::new);
 		return res;
 	}
 
@@ -177,7 +177,7 @@ public class StackExtractor {
 	}
 
 	/**
-	 * extract the given value recursively to make sure no information are lost in the process
+	 * extract the given value recursively to make sure no information is lost in the process
 	 * 
 	 * @param value the value to extract
 	 */

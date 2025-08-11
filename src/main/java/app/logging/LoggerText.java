@@ -7,7 +7,7 @@ import com.sun.jdi.StringReference;
 
 public class LoggerText extends AbstractLoggerFormat {
 
-	private static String indent = "  ";
+	private final static String indent = "  ";
 
 	public LoggerText(String outputName, String Extension) {
 		super(outputName, Extension);

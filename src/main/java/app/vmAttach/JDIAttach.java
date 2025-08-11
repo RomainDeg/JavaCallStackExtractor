@@ -15,8 +15,8 @@ import com.sun.jdi.connect.IllegalConnectorArgumentsException;
 public class JDIAttach {
 	
 	/**
-	 * Attach to a java virtual machine located with the given informations
-	 * @param vmConfig all informations needed to find the vm
+	 * Attach to a java virtual machine located with the given information
+	 * @param vmConfig all information needed to find the vm
 	 * @return the Virtual Machine if one found
 	 * @throws IOException                        when unable to attach.
 	 * @throws IllegalConnectorArgumentsException if no connector socket can be used.

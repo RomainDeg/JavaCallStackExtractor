@@ -1,6 +1,5 @@
 package app;
 
-import java.io.IOException;
 
 import com.sun.jdi.ThreadReference;
 import com.sun.jdi.VirtualMachine;
@@ -40,7 +39,7 @@ public class VmManager {
 			}
 		}
 		if (main == null) {
-			throw new IllegalStateException("No thread nammed " + threadName + "was found");
+			throw new IllegalStateException("No thread named " + threadName + "was found");
 		}
 		return main;
 	}
@@ -50,11 +49,10 @@ public class VmManager {
 	 * 
 	 * @param bkWrap the wrapper for the breakpoint searched
 	 * @throws InterruptedException
-	 * @throws IOException
 	 */
-	public void waitForBreakpoint(BreakpointWrapper bkWrap) throws InterruptedException, IOException {
+	public void waitForBreakpoint(BreakpointWrapper bkWrap) throws InterruptedException {
 
-		EventSet eventSet = null;
+		EventSet eventSet;
 		boolean stop = false;
 
 		while ((!stop && (eventSet = vm.eventQueue().remove()) != null)) {
@@ -62,7 +60,7 @@ public class VmManager {
 				if (event instanceof VMDeathEvent) {
 					throw new IllegalStateException("Thread has terminated without encountering the wanted breakpoint");
 				} else if (event instanceof VMDisconnectEvent) {
-					throw new IllegalStateException("VM has been disconected");
+					throw new IllegalStateException("VM has been disconnected");
 				} else if (event instanceof BreakpointEvent && (stop = bkWrap.shouldStopAt(event))) {
 					// BreakPoint attained we can stop here
 					break;
