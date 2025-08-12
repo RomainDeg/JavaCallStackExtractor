@@ -39,7 +39,8 @@ public class StackExtractor {
 	private ILoggerFormat logger;
 
 	/**
-	 * represent the maximum recursion algorithm to study object's fields and array's value can make
+	 * represent the maximum recursion algorithm to study object's fields and
+	 * array's value can make
 	 */
 	private int maxDepth;
 
@@ -54,8 +55,10 @@ public class StackExtractor {
 	 * @param loggerInfos information to instantiate the logger
 	 */
 	public StackExtractor(JsonNode loggerInfos, int depth) {
-		if (loggerInfos == null || !loggerInfos.has("format") || !loggerInfos.has("outputName") || !loggerInfos.has("extension")) {
-			throw new IllegalArgumentException("Missing required fields in loggerInfos: 'format', 'outputName', or 'extension'");
+		if (loggerInfos == null || !loggerInfos.has("format") || !loggerInfos.has("outputName")
+				|| !loggerInfos.has("extension")) {
+			throw new IllegalArgumentException(
+					"Missing required fields in loggerInfos: 'format', 'outputName', or 'extension'");
 		}
 
 		// logger creation
@@ -101,13 +104,16 @@ public class StackExtractor {
 	}
 
 	/**
-	 * extract a frame, by extracting the method signature, its arguments, and its receiver
+	 * extract a frame, by extracting the method signature, its arguments, and its
+	 * receiver
 	 * 
 	 * @param frame the frame to extract
 	 */
 	public void extract(StackFrame frame) {
 		extractMethod(frame);
+		logger.joinElementListing();
 		extractArguments(frame);
+		logger.joinElementListing();
 		extractReceiver(frame);
 	}
 
@@ -127,15 +133,24 @@ public class StackExtractor {
 	 * @param frame the frame to extract
 	 */
 	public void extractArguments(StackFrame frame) {
-		logger.methodArgumentStart();
+		boolean exception = false;
+
+		logger.methodArgumentsStart();
 
 		// arguments can sometimes not be accessible, if that's the case, stop here
-		Iterator<Value> argumentsValueIterator;
+		Iterator<Value> argumentsValueIterator = null;
 		try {
 			argumentsValueIterator = frame.getArgumentValues().iterator();
-
+		} catch (InternalException e) {
+			// Happens for native calls, and can't be obtained
+			logger.inaccessibleArgument();
+			exception = true;
+		}
+		if (!exception) {
+			logger.methodArgumentsValuesStart();
 			// doing the first iteration separately because the logging potentially need
-			// to know if we are at the first element or not to join with a special character
+			// to know if we are at the first element or not to join with a special
+			// character
 			if (argumentsValueIterator.hasNext()) {
 				extractAnArgument(argumentsValueIterator);
 			}
@@ -144,12 +159,9 @@ public class StackExtractor {
 				logger.joinElementListing();
 				extractAnArgument(argumentsValueIterator);
 			}
-		} catch (InternalException e) {
-			// Happens for native calls, and can't be obtained
-			logger.inaccessibleArgument();
+			logger.methodArgumentsValuesEnd();
 		}
-
-		logger.methodArgumentEnd();
+		logger.methodArgumentsEnd();
 	}
 
 	/**
@@ -157,8 +169,10 @@ public class StackExtractor {
 	 * @param argumentsValueIterator the iterator on the arguments
 	 */
 	private void extractAnArgument(Iterator<Value> argumentsValueIterator) {
-		// Here we suppose that method.argumentTypeNames() and frame.getArgumentValues() have the same numbers of items
-		// With this supposition being always true, we can just check if one have next and iterate in both
+		// Here we suppose that method.argumentTypeNames() and frame.getArgumentValues()
+		// have the same numbers of items
+		// With this supposition being always true, we can just check if one have next
+		// and iterate in both
 		extractValueRecursive(argumentsValueIterator.next(), 0);
 	}
 
@@ -174,7 +188,8 @@ public class StackExtractor {
 	}
 
 	/**
-	 * extract the given value recursively to make sure no information is lost in the process
+	 * extract the given value recursively to make sure no information is lost in
+	 * the process
 	 * 
 	 * @param value the value to extract
 	 */
@@ -189,7 +204,8 @@ public class StackExtractor {
 			extractObjectReference((ObjectReference) value, depth);
 		} else {
 			// in case there would be another type
-			throw new IllegalStateException("Unknown Value Type: " + value.type().name() + ", parsing not yet implemented for this type");
+			throw new IllegalStateException(
+					"Unknown Value Type: " + value.type().name() + ", parsing not yet implemented for this type");
 		}
 
 	}
@@ -226,11 +242,13 @@ public class StackExtractor {
 				if (arrayValues.isEmpty()) {
 					logger.emptyArray();
 				} else if (maxDepth != 0 & depth + 1 > maxDepth) {
-					// in case the max depth will be attained stop here to not make an array full of maxDepth messages
+					// in case the max depth will be attained stop here to not make an array full of
+					// maxDepth messages
 					logger.maxDepth();
 				} else {
 					// doing the first iteration separately because the logging potentially need
-					// to know if we are at the first element or not to join with a special character
+					// to know if we are at the first element or not to join with a special
+					// character
 					extractArrayValue(depth, arrayValues, 0);
 
 					for (int i = 1; i < arrayValues.size(); i++) {
@@ -271,8 +289,10 @@ public class StackExtractor {
 	 * @param type the reference type of the ObjectReference
 	 */
 	private void extractAllFields(ObjectReference ref, ReferenceType type, int depth) {
-		// Check if the class is prepared, if not trying to get any field will throw an exception
-		// If the class didn't load it mean it's not useful in the context of this call stack
+		// Check if the class is prepared, if not trying to get any field will throw an
+		// exception
+		// If the class didn't load it mean it's not useful in the context of this call
+		// stack
 
 		if (!type.isPrepared()) {
 			// Preparation involves creating the static fields for a class or interface and
@@ -283,7 +303,8 @@ public class StackExtractor {
 			logger.fieldsStart();
 			Iterator<Field> iterator = type.allFields().iterator();
 			// doing the first iteration separately because the logging potentially need
-			// to know if we are at the first element or not to join with a special character
+			// to know if we are at the first element or not to join with a special
+			// character
 			if (iterator.hasNext()) {
 				extractField(ref, depth, iterator.next());
 			}
@@ -298,7 +319,6 @@ public class StackExtractor {
 
 	}
 
-
 	/**
 	 * Extract one field of an Object reference
 	 * 
@@ -307,27 +327,29 @@ public class StackExtractor {
 	 * @param field the field to extract
 	 */
 	private void extractField(ObjectReference ref, int depth, Field field) {
-
+		boolean exception = false;
 		logger.fieldStart(field.name());
+		Value fieldValue = null;
 		try {
 			// TODO
 			// We actually extract the static and final fields, should we?
 			// it's potential information but could also be noise
+			fieldValue = ref.getValue(field);
 
-			Value fieldValue = ref.getValue(field);
-			logger.fieldValueStart();
-			
-			extractValueRecursive(fieldValue, depth + 1);
-			
-			logger.fieldValueEnd();
 		} catch (IllegalArgumentException e) {
 			logger.inaccessibleField();
+			exception = true;
 		}
+		if (!exception) {
 
+			logger.fieldValueStart();
+
+			extractValueRecursive(fieldValue, depth + 1);
+
+			logger.fieldValueEnd();
+		}
 		logger.fieldEnd();
 
 	}
-	
-	
 
 }

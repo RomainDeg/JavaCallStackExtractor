@@ -21,9 +21,13 @@ public interface ILoggerFormat {
 
 	void methodSignature(Method method);
 
-	void methodArgumentStart();
+	void methodArgumentsStart();
 
-	void methodArgumentEnd();
+	void methodArgumentsEnd();
+
+	void methodArgumentsValuesStart();
+
+	void methodArgumentsValuesEnd();
 
 	void inaccessibleArgument();
 
@@ -72,5 +76,6 @@ public interface ILoggerFormat {
 	void arrayReferenceStart();
 
 	void arrayReferenceEnd();
+
 
 }

@@ -12,7 +12,7 @@ public class JDICallstackExtractor {
 
 	public static void main(String[] args) throws Exception {
 		// reading the config file
-		String configFileName;
+		String configFileName; 
 		JsonNode config = null;
 		if (args.length == 0) {
 			configFileName = "config.json";

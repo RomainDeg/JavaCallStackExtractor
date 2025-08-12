@@ -44,7 +44,8 @@ public class LoggerJson extends AbstractLoggerFormat {
 
 	@Override
 	public void methodSignature(Method method) {
-		// Retrieving the type of the parameters is important because it provides the most general type that can be used
+		// Retrieving the type of the parameters is important because it provides the
+		// most general type that can be used
 
 		write(quotes("method") + ":");
 		// open object
@@ -71,31 +72,40 @@ public class LoggerJson extends AbstractLoggerFormat {
 
 		// close object
 		this.objectEnd();
-		this.joinElementListing();
 	}
 
 	@Override
-	public void methodArgumentStart() {
+	public void methodArgumentsStart() {
 		write(quotes("arguments") + ":");
 
-		// open array
-		this.arrayStart();
+		// open object
+		this.objectStart();
 
 	}
 
 	@Override
-	public void methodArgumentEnd() {
-		// close array
-		this.arrayEnd();
+	public void methodArgumentsEnd() {
+		// close object
+		this.objectEnd();
+	}
+	
 
-		this.joinElementListing();
+	@Override
+	public void methodArgumentsValuesStart() {
+		write(quotes("argsValues") + ":");
+		this.arrayStart();
+		
+	}
+
+	@Override
+	public void methodArgumentsValuesEnd() {
+		this.arrayEnd();
 	}
 
 	@Override
 	public void inaccessibleArgument() {
-		write(quotes("<<INACCESSIBLE>>"));
+		write(quotes("accessible") + ":" + "false");
 	}
-
 
 	@Override
 	public void fieldsStart() {
@@ -134,8 +144,8 @@ public class LoggerJson extends AbstractLoggerFormat {
 
 	@Override
 	public void fieldValueEnd() {
-		//Nothing needed to be logged
-	
+		// Nothing needed to be logged
+
 	}
 
 	@Override
@@ -145,7 +155,7 @@ public class LoggerJson extends AbstractLoggerFormat {
 		// close object field
 		this.objectEnd();
 	}
-	
+
 	@Override
 	public void inaccessibleField() {
 		this.joinElementListing();
@@ -346,5 +356,6 @@ public class LoggerJson extends AbstractLoggerFormat {
 	private void objectEnd() {
 		write("}");
 	}
+
 
 }
