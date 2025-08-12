@@ -71,7 +71,7 @@ Use 0 for unlimited depth.
 
 ### logging
 Controls how the output is formatted and where it is saved.
-- format : Output format – currently supports "txt" or "json"  
+- format : Output format – currently supports "json"  
   (You can easily add new formats – see [addLoggerFormat.md](addLoggerFormat.md))
 - outputName : Base name of the output file
 - extension : File extension (default is "cs").  

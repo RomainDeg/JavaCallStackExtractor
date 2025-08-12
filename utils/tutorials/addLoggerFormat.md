@@ -1,6 +1,5 @@
 # Adding a new logging format 
 JavaCallStackExtractor currently supports the following logging formats:
-- txt – A simple, human-readable format for visual analysis.
 - json – A structured format suitable for integration with other tools.
 
 ## Want to know what data is available to the logger?
