@@ -25,43 +25,47 @@ public interface ILoggerFormat {
 
 	void methodArgumentEnd();
 
-	void inaccessibleArgument(int depth);
-
-	void inaccessibleField(int depth);
+	void inaccessibleArgument();
 
 	void fieldsStart();
 
 	void fieldsEnd();
-
-	void fieldNameStart(String name, int depth);
-
-	void fieldNameEnd();
-
+	
+	void fieldStart(String name);
+	
+	void fieldValueStart();
+	
+	void fieldValueEnd();
+	
+	void fieldEnd();
+	
+	void inaccessibleField();
+	
 	void methodReceiverStart();
 
 	void methodReceiverEnd();
 
-	void nullValue(int depth);
+	void nullValue();
 
-	void maxDepth(int depth);
+	void maxDepth();
 
-	void primitiveValue(PrimitiveValue value, int depth);
+	void primitiveValue(PrimitiveValue value);
 
-	void stringReference(StringReference value, int depth);
+	void stringReference(StringReference value);
 
-	void objectReferenceAlreadyFound(ObjectReference value, int depth);
+	void objectReferenceAlreadyFound(ObjectReference value);
 
-	void objectReferenceStart(ObjectReference value, int depth);
+	void objectReferenceStart(ObjectReference value);
 
 	void objectReferenceEnd();
 
-	void emptyArray(int depth);
+	void emptyArray();
 
-	void arrayValueStart(int number, int depth);
+	void arrayValueStart(int number);
 
 	void arrayValueEnd();
 
-	void classNotPrepared(int depth);
+	void classNotPrepared();
 
 	void joinElementListing();
 

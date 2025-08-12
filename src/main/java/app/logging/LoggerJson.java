@@ -74,7 +74,6 @@ public class LoggerJson extends AbstractLoggerFormat {
 		this.joinElementListing();
 	}
 
-
 	@Override
 	public void methodArgumentStart() {
 		write(quotes("arguments") + ":");
@@ -91,16 +90,12 @@ public class LoggerJson extends AbstractLoggerFormat {
 
 		this.joinElementListing();
 	}
-	
+
 	@Override
-	public void inaccessibleArgument(int depth) {
+	public void inaccessibleArgument() {
 		write(quotes("<<INACCESSIBLE>>"));
 	}
 
-	@Override
-	public void inaccessibleField(int depth) {
-		write(quotes("<<INACCESSIBLE>>"));
-	}
 
 	@Override
 	public void fieldsStart() {
@@ -122,24 +117,39 @@ public class LoggerJson extends AbstractLoggerFormat {
 	}
 
 	@Override
-	public void fieldNameStart(String name, int depth) {
+	public void fieldStart(String name) {
 		// open object for field
 		this.objectStart();
 		write(quotes("field") + ":");
 		// open object for field description
 		this.objectStart();
-
 		write(quotes("name") + ":" + quotes(name));
+	}
+
+	@Override
+	public void fieldValueStart() {
 		this.joinElementListing();
 		write(quotes("value") + ":");
 	}
 
 	@Override
-	public void fieldNameEnd() {
-		// close object in field
+	public void fieldValueEnd() {
+		//Nothing needed to be logged
+	
+	}
+
+	@Override
+	public void fieldEnd() {
+		// close object for field description field
 		this.objectEnd();
 		// close object field
 		this.objectEnd();
+	}
+	
+	@Override
+	public void inaccessibleField() {
+		this.joinElementListing();
+		write(quotes("accessible") + ":" + "false");
 	}
 
 	@Override
@@ -157,17 +167,17 @@ public class LoggerJson extends AbstractLoggerFormat {
 	}
 
 	@Override
-	public void nullValue(int depth) {
+	public void nullValue() {
 		write("null");
 	}
 
 	@Override
-	public void maxDepth(int depth) {
+	public void maxDepth() {
 		write(quotes("<<MAX_DEPTH_REACHED>>"));
 	}
 
 	@Override
-	public void primitiveValue(PrimitiveValue value, int depth) {
+	public void primitiveValue(PrimitiveValue value) {
 		// open object for the primitive type
 		this.objectStart();
 
@@ -190,17 +200,17 @@ public class LoggerJson extends AbstractLoggerFormat {
 	}
 
 	@Override
-	public void stringReference(StringReference value, int depth) {
+	public void stringReference(StringReference value) {
 		write(quotes(value.value()));
 	}
 
 	@Override
-	public void objectReferenceAlreadyFound(ObjectReference value, int depth) {
+	public void objectReferenceAlreadyFound(ObjectReference value) {
 		write(quotes("<<Already_Studied>>"));
 	}
 
 	@Override
-	public void objectReferenceStart(ObjectReference value, int depth) {
+	public void objectReferenceStart(ObjectReference value) {
 		// open object for the reference
 		this.objectStart();
 		write(quotes("reference") + ":");
@@ -223,12 +233,12 @@ public class LoggerJson extends AbstractLoggerFormat {
 	}
 
 	@Override
-	public void emptyArray(int depth) {
+	public void emptyArray() {
 		// Nothing
 	}
 
 	@Override
-	public void arrayValueStart(int number, int depth) {
+	public void arrayValueStart(int number) {
 		// Nothing
 	}
 
@@ -239,7 +249,7 @@ public class LoggerJson extends AbstractLoggerFormat {
 	}
 
 	@Override
-	public void classNotPrepared(int depth) {
+	public void classNotPrepared() {
 		write(quotes("<<CLASS_NOT_PREPARED>>"));
 
 	}
@@ -318,7 +328,7 @@ public class LoggerJson extends AbstractLoggerFormat {
 	private void parameter(String typeName) {
 		this.objectStart();
 		write(quotes("name") + ":");
-		this.nullValue(0);
+		this.nullValue();
 		this.joinElementListing();
 		write(quotes("type") + ":");
 		write(quotes(typeName));

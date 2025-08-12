@@ -23,7 +23,6 @@ import com.sun.jdi.Value;
 
 import app.logging.ILoggerFormat;
 import app.logging.LoggerJson;
-import app.logging.LoggerText;
 
 import com.sun.jdi.ReferenceType;
 
@@ -78,8 +77,6 @@ public class StackExtractor {
 		Map<String, BiFunction<String, String, ILoggerFormat>> res = new HashMap<>();
 		// json format
 		res.put("json", LoggerJson::new);
-		// txt format
-		res.put("txt", LoggerText::new);
 		return res;
 	}
 
@@ -149,7 +146,7 @@ public class StackExtractor {
 			}
 		} catch (InternalException e) {
 			// Happens for native calls, and can't be obtained
-			logger.inaccessibleArgument(0);
+			logger.inaccessibleArgument();
 		}
 
 		logger.methodArgumentEnd();
@@ -183,9 +180,9 @@ public class StackExtractor {
 	 */
 	private void extractValueRecursive(Value value, int depth) {
 		if (maxDepth != 0 & depth > maxDepth) {
-			logger.maxDepth(depth);
+			logger.maxDepth();
 		} else if (value == null) {
-			logger.nullValue(depth);
+			logger.nullValue();
 		} else if (value instanceof PrimitiveValue) {
 			extractPrimitiveValue((PrimitiveValue) value, depth);
 		} else if (value instanceof ObjectReference) {
@@ -203,7 +200,7 @@ public class StackExtractor {
 	 * @param value the primitiveValue to extract
 	 */
 	private void extractPrimitiveValue(PrimitiveValue value, int depth) {
-		logger.primitiveValue(value, depth);
+		logger.primitiveValue(value);
 	}
 
 	/**
@@ -212,25 +209,25 @@ public class StackExtractor {
 	 * @param value the ObjectReference to extract
 	 */
 	private void extractObjectReference(ObjectReference value, int depth) {
-		logger.objectReferenceStart(value, depth);
+		logger.objectReferenceStart(value);
 
 		if (visited.contains(value)) {
-			logger.objectReferenceAlreadyFound(value, depth);
+			logger.objectReferenceAlreadyFound(value);
 		} else {
 			visited.add(value);
 
 			if (value instanceof StringReference) {
-				logger.stringReference((StringReference) value, depth);
+				logger.stringReference((StringReference) value);
 			} else if (value instanceof ArrayReference) {
 
 				logger.arrayReferenceStart();
 				// Parsing every value of the array
 				List<Value> arrayValues = ((ArrayReference) value).getValues();
 				if (arrayValues.isEmpty()) {
-					logger.emptyArray(depth);
+					logger.emptyArray();
 				} else if (maxDepth != 0 & depth + 1 > maxDepth) {
 					// in case the max depth will be attained stop here to not make an array full of maxDepth messages
-					logger.maxDepth(depth);
+					logger.maxDepth();
 				} else {
 					// doing the first iteration separately because the logging potentially need
 					// to know if we are at the first element or not to join with a special character
@@ -262,7 +259,7 @@ public class StackExtractor {
 	 * @param index       the index of the value to extract
 	 */
 	private void extractArrayValue(int depth, List<Value> arrayValues, int index) {
-		logger.arrayValueStart(index, depth);
+		logger.arrayValueStart(index);
 		extractValueRecursive(arrayValues.get(index), depth + 1);
 		logger.arrayValueEnd();
 	}
@@ -281,7 +278,7 @@ public class StackExtractor {
 			// Preparation involves creating the static fields for a class or interface and
 			// initializing such fields to their default values
 
-			logger.classNotPrepared(depth);
+			logger.classNotPrepared();
 		} else {
 			logger.fieldsStart();
 			Iterator<Field> iterator = type.allFields().iterator();
@@ -301,6 +298,7 @@ public class StackExtractor {
 
 	}
 
+
 	/**
 	 * Extract one field of an Object reference
 	 * 
@@ -309,20 +307,27 @@ public class StackExtractor {
 	 * @param field the field to extract
 	 */
 	private void extractField(ObjectReference ref, int depth, Field field) {
+
+		logger.fieldStart(field.name());
 		try {
 			// TODO
 			// We actually extract the static and final fields, should we?
 			// it's potential information but could also be noise
+
 			Value fieldValue = ref.getValue(field);
-			logger.fieldNameStart(field.name(), depth);
-
+			logger.fieldValueStart();
+			
 			extractValueRecursive(fieldValue, depth + 1);
-
-			logger.fieldNameEnd();
-
+			
+			logger.fieldValueEnd();
 		} catch (IllegalArgumentException e) {
-			logger.inaccessibleField(depth);
+			logger.inaccessibleField();
 		}
+
+		logger.fieldEnd();
+
 	}
+	
+	
 
 }
