@@ -12,6 +12,8 @@ Newer versions might work, but have not been tested.
 It is highly recommended to use the **same Java version** for both the program you want to analyze and the extractor (for example, if your application is executed in Java 9, the extractor should be cexecuted on Java 9).  
 Using different versions may lead to unexpected behavior.  
 
+### Step 0: Make at least a maven build to imports necessary libraries
+
 ### Step 1: Run the Target Program in Debug Mode 
 Launch the program you want to analyze with the following VM argument:
 ```
