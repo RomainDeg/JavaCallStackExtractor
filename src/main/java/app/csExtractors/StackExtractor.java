@@ -225,13 +225,13 @@ public class StackExtractor {
 	 * @param value the ObjectReference to extract
 	 */
 	private void extractObjectReference(ObjectReference value, int depth) {
-		logger.objectReferenceStart(value);
 
+		logger.objectReferenceStart();
 		if (visited.contains(value)) {
 			logger.objectReferenceAlreadyFound(value);
 		} else {
 			visited.add(value);
-
+			logger.objectReferenceInfoStart(value);
 			if (value instanceof StringReference) {
 				logger.stringReference((StringReference) value);
 			} else if (value instanceof ArrayReference) {
@@ -265,6 +265,7 @@ public class StackExtractor {
 			} else {
 				extractAllFields(value, value.referenceType(), depth);
 			}
+			logger.objectReferenceInfoEnd();
 		}
 		logger.objectReferenceEnd();
 	}

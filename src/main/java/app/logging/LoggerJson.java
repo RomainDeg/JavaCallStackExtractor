@@ -88,13 +88,12 @@ public class LoggerJson extends AbstractLoggerFormat {
 		// close object
 		this.objectEnd();
 	}
-	
 
 	@Override
 	public void methodArgumentsValuesStart() {
 		write(quotes("argsValues") + ":");
 		this.arrayStart();
-		
+
 	}
 
 	@Override
@@ -215,31 +214,37 @@ public class LoggerJson extends AbstractLoggerFormat {
 	}
 
 	@Override
-	public void objectReferenceAlreadyFound(ObjectReference value) {
-		write(quotes("<<Already_Studied>>"));
-	}
-
-	@Override
-	public void objectReferenceStart(ObjectReference value) {
+	public void objectReferenceStart() {
 		// open object for the reference
 		this.objectStart();
 		write(quotes("reference") + ":");
 		// open object for the description
 		this.objectStart();
+	}
+
+	public void objectReferenceEnd() {
+		// close object for the description
+		this.objectEnd();
+		// close object for the reference
+		this.objectEnd();
+	}
+
+	public void objectReferenceInfoStart(ObjectReference value) {
 		write(quotes("type") + ":" + quotes(value.referenceType().name()));
 		this.joinElementListing();
 		write(quotes("uniqueId") + ":" + value.uniqueID());
 		this.joinElementListing();
 		write(quotes("refered") + ":");
-
 	}
 
-	@Override
-	public void objectReferenceEnd() {
-		// close object for the reference
-		this.objectEnd();
-		// close object for the description
-		this.objectEnd();
+	public void objectReferenceInfoEnd() {
+	}
+
+	public void objectReferenceAlreadyFound(ObjectReference value) {
+
+		write(quotes("alreadyFound") + ":" + "true");
+		this.joinElementListing();
+		write(quotes("uniqueId") + ":" + value.uniqueID());
 	}
 
 	@Override
@@ -356,6 +361,5 @@ public class LoggerJson extends AbstractLoggerFormat {
 	private void objectEnd() {
 		write("}");
 	}
-
 
 }

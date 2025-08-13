@@ -57,11 +57,15 @@ public interface ILoggerFormat {
 
 	void stringReference(StringReference value);
 
-	void objectReferenceAlreadyFound(ObjectReference value);
-
-	void objectReferenceStart(ObjectReference value);
-
+	void objectReferenceStart();
+	
 	void objectReferenceEnd();
+
+	void objectReferenceInfoStart(ObjectReference value);
+
+	void objectReferenceInfoEnd();
+
+	void objectReferenceAlreadyFound(ObjectReference value);
 
 	void emptyArray();
 
