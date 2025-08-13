@@ -67,7 +67,7 @@ In this case:
 
 ### maxDepth
 Sets the maximum recursion depth for call stack logging.
-Use 0 for unlimited depth.
+Use a negative number for unlimited depth.
 
 ### logging
 Controls how the output is formatted and where it is saved.

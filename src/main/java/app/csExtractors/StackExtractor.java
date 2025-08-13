@@ -194,7 +194,7 @@ public class StackExtractor {
 	 * @param value the value to extract
 	 */
 	private void extractValueRecursive(Value value, int depth) {
-		if (maxDepth != 0 & depth > maxDepth) {
+		if (maxDepth >= 0 & depth > maxDepth) {
 			logger.maxDepth();
 		} else if (value == null) {
 			logger.nullValue();
@@ -241,7 +241,7 @@ public class StackExtractor {
 				List<Value> arrayValues = ((ArrayReference) value).getValues();
 				if (arrayValues.isEmpty()) {
 					logger.emptyArray();
-				} else if (maxDepth != 0 & depth + 1 > maxDepth) {
+				} else if (maxDepth >= 0 & depth + 1 > maxDepth) {
 					// in case the max depth will be attained stop here to not make an array full of
 					// maxDepth messages
 					logger.maxDepth();
