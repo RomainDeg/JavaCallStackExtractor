@@ -190,7 +190,7 @@ public class LoggerJson extends AbstractLoggerFormat {
 		// open object for the primitive type
 		this.objectStart();
 
-		write(quotes("primitiveType") + ":");
+		write(quotes("primitiveValue") + ":");
 
 		// open object for the description of the type
 		this.objectStart();
