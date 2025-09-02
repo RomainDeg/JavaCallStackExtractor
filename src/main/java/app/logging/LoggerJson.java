@@ -79,6 +79,7 @@ public class LoggerJson extends AbstractLoggerFormat {
 
 	public String signatureParameter(Method method) {
 		String paramString = "";
+		
 		try {
 			Iterator<LocalVariable> ite = method.arguments().iterator();
 			if (ite.hasNext()) {
@@ -94,8 +95,9 @@ public class LoggerJson extends AbstractLoggerFormat {
 	}
 	
 	public String parseTypeName(LocalVariable var) {
-		int lastIndex = var.typeName().lastIndexOf('.');
-		return lastIndex == -1 ? var.typeName() : var.typeName().substring(lastIndex + 1); 
+		JVMSignatureToMooseSignatureConverter parser = JVMSignatureToMooseSignatureConverter.make();
+		if (var.genericSignature()==null) return parser.parseTypeSig(var.signature());
+		else return parser.parseTypeSig(var.genericSignature()); 
 	}
 	
 	@Override
